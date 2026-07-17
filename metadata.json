@@ -1,6 +1,0 @@
-{
-  "name": "Quản lý Kho",
-  "description": "Ứng dụng Quản lý Sản phẩm Kho hàng Đơn giản (Danh sách, Chi tiết, Thêm/Sửa, Thống kê tồn kho)",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
