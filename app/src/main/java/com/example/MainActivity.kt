@@ -68,6 +68,9 @@ fun AppNavigation() {
                 onProductClick = { product ->
                     navController.navigate("detail/${product.id}")
                 },
+                onEditProduct = { product ->
+                    navController.navigate("add_edit?productId=${product.id}")
+                },
                 onAddProductClick = {
                     navController.navigate("add_edit")
                 }
@@ -157,6 +160,7 @@ fun isEditMode(product: Product?): Boolean = product != null
 fun MainTabsContainer(
     viewModel: ProductViewModel,
     onProductClick: (Product) -> Unit,
+    onEditProduct: (Product) -> Unit,
     onAddProductClick: () -> Unit
 ) {
     val currentTab by viewModel.currentTab.collectAsState()
@@ -165,6 +169,7 @@ fun MainTabsContainer(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val notifications by viewModel.notifications.collectAsState()
+    val unreadNotificationCount by viewModel.unreadNotificationCount.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -235,10 +240,12 @@ fun MainTabsContainer(
                     icon = {
                         BadgedBox(
                             badge = {
-                                val unreadCount = notifications.size
-                                if (unreadCount > 0) {
+                                if (unreadNotificationCount > 0) {
                                     Badge(containerColor = WarehouseRed) {
-                                        Text(unreadCount.toString(), color = Color.White)
+                                        Text(
+                                            if (unreadNotificationCount > 99) "99+" else unreadNotificationCount.toString(),
+                                            color = Color.White
+                                        )
                                     }
                                 }
                             }
@@ -299,6 +306,7 @@ fun MainTabsContainer(
                     selectedCategory = selectedCategory,
                     onCategorySelected = { category: String -> viewModel.setSelectedCategory(category) },
                     onProductClick = onProductClick,
+                    onEditProduct = onEditProduct,
                     onAddProductClick = onAddProductClick,
                     onAdjustStock = { product: Product, amount: Int -> viewModel.adjustStock(product, amount) }
                 )
@@ -306,8 +314,13 @@ fun MainTabsContainer(
                 2 -> NotificationsScreen(
                     notifications = notifications,
                     onClearAllClick = { viewModel.clearAllNotifications() },
-                    onNotificationDismissed = { _: WarehouseNotification -> },
-                    onNotificationClick = { _: WarehouseNotification -> }
+                    onMarkAllAsReadClick = { viewModel.markAllNotificationsAsRead() },
+                    onNotificationDismissed = { notification: WarehouseNotification ->
+                        viewModel.deleteNotification(notification)
+                    },
+                    onNotificationClick = { notification: WarehouseNotification ->
+                        viewModel.markNotificationAsRead(notification.id)
+                    }
                 )
                 3 -> SearchScreen(
                     filteredProducts = filteredProducts,

@@ -27,13 +27,13 @@ import java.io.File
 import java.text.NumberFormat
 import java.util.*
 
-// --- CÁC HÀM ĐỊNH DẠNG (FORMATTING UTILS) CHUẨN CỦA HỆ THỐNG ---
-
+// Formats pricing nicely
 fun formatCurrency(amount: Double): String {
     val format = NumberFormat.getCurrencyInstance(Locale.US)
     return format.format(amount)
 }
 
+// Compact currency formatting (e.g. $36M, $36.36k)
 fun formatCompactCurrency(amount: Double): String {
     return when {
         amount >= 1_000_000_000 -> String.format(Locale.US, "$%.1fB", amount / 1_000_000_000.0)
@@ -43,6 +43,7 @@ fun formatCompactCurrency(amount: Double): String {
     }
 }
 
+// Compact number formatting (e.g. 3.60k)
 fun formatCompactNumber(number: Int): String {
     return when {
         number >= 1_000_000 -> String.format(Locale.US, "%.1fM", number / 1_000_000.0)
@@ -51,8 +52,7 @@ fun formatCompactNumber(number: Int): String {
     }
 }
 
-// --- QUẢN LÝ DANH MỤC (CATEGORY SYSTEM) ---
-
+// Category design mapping
 data class CategoryMeta(
     val name: String,
     val icon: ImageVector,
@@ -75,8 +75,7 @@ object CategoryRegistry {
     }
 }
 
-// --- CÁC COMPONENT GIAO DIỆN TÁI SỬ DỤNG (REUSABLE UI COMPONENTS) ---
-
+// Red top-bar with custom actions, matches layout exactly
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WarehouseHeader(
@@ -111,7 +110,7 @@ fun WarehouseHeader(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Interactive Product Card item shown in lists
 @Composable
 fun ProductListItem(
     product: Product,
@@ -125,7 +124,9 @@ fun ProductListItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .clickable(onClick = onClick),
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .strongGlassShine(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -138,7 +139,7 @@ fun ProductListItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Khối hiển thị hình ảnh sản phẩm bên trái
+            // Left image display
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -165,7 +166,7 @@ fun ProductListItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Nội dung thông tin chi tiết ở giữa
+            // Center details
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -201,8 +202,8 @@ fun ProductListItem(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Cảnh báo số lượng tồn kho thấp (đổi điều kiện đồng bộ <= 8)
-                    if (product.quantity <= 8) {
+                    // Low stock red alert flag
+                    if (product.quantity <= 10) {
                         Badge(
                             containerColor = WarehouseRed.copy(alpha = 0.15f),
                             contentColor = WarehouseRed
@@ -218,7 +219,7 @@ fun ProductListItem(
                 }
             }
 
-            // Khối thông tin giá trị và số lượng bên phải
+            // Right pricing / qty display and controls
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
@@ -227,7 +228,7 @@ fun ProductListItem(
                     text = "${product.quantity} chiếc",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (product.quantity <= 8) WarehouseRed else MaterialTheme.colorScheme.onSurface
+                    color = if (product.quantity <= 10) WarehouseRed else MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
@@ -245,43 +246,6 @@ fun ProductListItem(
             }
         }
     }
-}
-
-@Composable
-fun MiniStatItem(
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = title,
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = value,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-fun RowScope.DividerVertical() {
-    Box(
-        modifier = Modifier
-            .width(1.dp)
-            .height(24.dp)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-            .align(Alignment.CenterVertically)
-    )
 }
 
 @Composable

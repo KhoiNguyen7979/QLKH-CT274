@@ -12,7 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,61 +25,91 @@ import com.example.data.WarehouseNotification
 import com.example.ui.theme.CategoryFolders
 import com.example.ui.theme.WarehouseRed
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
     notifications: List<WarehouseNotification>,
     onClearAllClick: () -> Unit,
-    // Ép kiểu cụ thể dạng Lambda để Kotlin không bao giờ bị infer sai type
-    onNotificationDismissed: (WarehouseNotification) -> Unit = {},
-    onNotificationClick: (WarehouseNotification) -> Unit = {}
+    onMarkAllAsReadClick: () -> Unit,
+    onNotificationDismissed: (WarehouseNotification) -> Unit,
+    onNotificationClick: (WarehouseNotification) -> Unit
 ) {
-    val currentTime = System.currentTimeMillis()
-    val oneDayMillis = 24 * 60 * 60 * 1000L
-
-    val (newNotifications, earlierNotifications) = notifications.partition {
-        currentTime - it.timestamp < oneDayMillis
-    }
+    val now = System.currentTimeMillis()
+    val oneDay = 24 * 60 * 60 * 1000L
+    val unreadCount = notifications.count { !it.isRead }
+    val newNotifications = notifications.filter { now - it.timestamp < oneDay }
+    val earlierNotifications = notifications.filter { now - it.timestamp >= oneDay }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Text(
-                text = "Thông báo",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            if (notifications.isNotEmpty()) {
-                TextButton(
-                    onClick = onClearAllClick,
-                    colors = ButtonDefaults.textButtonColors(contentColor = WarehouseRed)
-                ) {
-                    Icon(Icons.Rounded.DeleteSweep, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Xóa tất cả", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Thông báo",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (unreadCount > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Badge(containerColor = WarehouseRed) {
+                            Text(unreadCount.toString(), color = Color.White)
+                        }
+                    }
                 }
+
+                if (notifications.isNotEmpty()) {
+                    TextButton(
+                        onClick = onClearAllClick,
+                        colors = ButtonDefaults.textButtonColors(contentColor = WarehouseRed)
+                    ) {
+                        Icon(Icons.Rounded.DeleteSweep, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Xóa tất cả", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+
+            if (unreadCount > 0) {
+                TextButton(
+                    onClick = onMarkAllAsReadClick,
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)
+                ) {
+                    Icon(Icons.Rounded.DoneAll, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Đánh dấu tất cả đã đọc", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            if (notifications.isNotEmpty()) {
+                Text(
+                    text = if (unreadCount > 0) {
+                        "$unreadCount thông báo chưa đọc trong tổng số ${notifications.size}"
+                    } else {
+                        "Tất cả thông báo đã được đọc"
+                    },
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                )
             }
         }
 
         if (notifications.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(32.dp)
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -87,75 +118,72 @@ fun NotificationsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.NotificationsOff,
-                            contentDescription = "No notifications icon",
+                            Icons.Rounded.NotificationsOff,
+                            "Không có thông báo",
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             modifier = Modifier.size(40.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Bạn không có thông báo nào",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text("Bạn không có thông báo nào", fontWeight = FontWeight.Bold)
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().weight(1f),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
             ) {
                 if (newNotifications.isNotEmpty()) {
-                    item { NotificationHeader("MỚI NHẤT") }
-                    items(newNotifications, key = { it.id }) { notification: WarehouseNotification ->
-                        SwipeToDismissItem(
+                    item { NotificationHeader("MỚI NHẤT", newNotifications.size) }
+                    items(newNotifications, key = { it.id }) { notification ->
+                        SwipeToDismissNotificationItem(
                             notification = notification,
-                            onDismiss = { onNotificationDismissed(notification) },
-                            content = {
-                                NotificationItemRow(
-                                    notification = notification,
-                                    onClick = { onNotificationClick(notification) }
-                                )
+                            onDismiss = { onNotificationDismissed(notification) }
+                        ) {
+                            NotificationItemRow(notification) {
+                                if (!notification.isRead) onNotificationClick(notification)
                             }
-                        )
+                        }
                     }
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                    item { Spacer(Modifier.height(16.dp)) }
                 }
 
                 if (earlierNotifications.isNotEmpty()) {
-                    item { NotificationHeader("TRƯỚC ĐÓ") }
-                    items(earlierNotifications, key = { it.id }) { notification: WarehouseNotification ->
-                        SwipeToDismissItem(
+                    item { NotificationHeader("TRƯỚC ĐÓ", earlierNotifications.size) }
+                    items(earlierNotifications, key = { it.id }) { notification ->
+                        SwipeToDismissNotificationItem(
                             notification = notification,
-                            onDismiss = { onNotificationDismissed(notification) },
-                            content = {
-                                NotificationItemRow(
-                                    notification = notification,
-                                    onClick = { onNotificationClick(notification) }
-                                )
+                            onDismiss = { onNotificationDismissed(notification) }
+                        ) {
+                            NotificationItemRow(notification) {
+                                if (!notification.isRead) onNotificationClick(notification)
                             }
-                        )
+                        }
                     }
                 }
 
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
 }
 
 @Composable
-fun NotificationHeader(title: String) {
-    Text(
-        text = title,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.ExtraBold,
-        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+fun NotificationHeader(title: String, count: Int) {
+    Row(
         modifier = Modifier.padding(vertical = 8.dp),
-        letterSpacing = 1.sp
-    )
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            title,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+            letterSpacing = 1.sp
+        )
+        Spacer(Modifier.width(6.dp))
+        Text("($count)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
 }
 
 @Composable
@@ -164,51 +192,79 @@ fun NotificationItemRow(
     onClick: () -> Unit
 ) {
     val (icon, tintColor) = when (notification.type) {
-        "success" -> Pair(Icons.Rounded.CheckCircle, Color(0xFF4CAF50))
-        "warning" -> Pair(Icons.Rounded.Warning, WarehouseRed)
-        "info" -> Pair(Icons.Rounded.Info, CategoryFolders)
-        else -> Pair(Icons.Rounded.Notifications, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+        "success" -> Icons.Rounded.CheckCircle to Color(0xFF4CAF50)
+        "warning" -> Icons.Rounded.Warning to WarehouseRed
+        "info" -> Icons.Rounded.Info to CategoryFolders
+        else -> Icons.Rounded.Notifications to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable { onClick() },
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = if (notification.isRead) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                WarehouseRed.copy(alpha = 0.08f)
+            }
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (notification.isRead) 1.dp else 3.dp
+        )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
                     .background(tintColor.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = notification.type, tint = tintColor, modifier = Modifier.size(20.dp))
+                Icon(icon, notification.type, tint = tintColor, modifier = Modifier.size(21.dp))
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        notification.title,
+                        fontSize = 14.sp,
+                        fontWeight = if (notification.isRead) FontWeight.SemiBold else FontWeight.ExtraBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (!notification.isRead) {
+                        Spacer(Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(9.dp)
+                                .clip(CircleShape)
+                                .background(WarehouseRed)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(3.dp))
                 Text(
-                    text = notification.title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = notification.message,
+                    notification.message,
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = if (notification.isRead) 0.65f else 0.85f
+                    )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(5.dp))
 
                 val relativeTime = DateUtils.getRelativeTimeSpanString(
                     notification.timestamp,
@@ -216,7 +272,24 @@ fun NotificationItemRow(
                     DateUtils.MINUTE_IN_MILLIS
                 ).toString()
 
-                Text(text = relativeTime, fontSize = 10.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        relativeTime,
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+                    if (!notification.isRead) {
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            Icons.Rounded.MarkEmailUnread,
+                            "Chưa đọc",
+                            tint = WarehouseRed,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(Modifier.width(3.dp))
+                        Text("Chưa đọc", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = WarehouseRed)
+                    }
+                }
             }
         }
     }
@@ -224,40 +297,52 @@ fun NotificationItemRow(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SwipeToDismissItem(
+fun SwipeToDismissNotificationItem(
     notification: WarehouseNotification,
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            if (it == SwipeToDismissBoxValue.EndToStart || it == SwipeToDismissBoxValue.StartToEnd) {
+        confirmValueChange = { value ->
+            if (
+                value == SwipeToDismissBoxValue.EndToStart ||
+                value == SwipeToDismissBoxValue.StartToEnd
+            ) {
                 onDismiss()
                 true
-            } else false
+            } else {
+                false
+            }
         }
     )
 
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
-            val color by animateColorAsState(
-                when (dismissState.targetValue) {
-                    SwipeToDismissBoxValue.Settled -> Color.Transparent
-                    else -> WarehouseRed.copy(alpha = 0.9f)
-                }, label = "ColorAnimation"
+            val backgroundColor by animateColorAsState(
+                targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.Settled) {
+                    Color.Transparent
+                } else {
+                    WarehouseRed.copy(alpha = 0.9f)
+                },
+                label = "NotificationDismissColor"
             )
+            val alignment = if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
+                Alignment.CenterStart
+            } else {
+                Alignment.CenterEnd
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = 4.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(color)
+                    .background(backgroundColor)
                     .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = alignment
             ) {
                 if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
-                    Icon(imageVector = Icons.Rounded.Delete, contentDescription = "Delete", tint = Color.White)
+                    Icon(Icons.Rounded.Delete, "Xóa thông báo", tint = Color.White)
                 }
             }
         },

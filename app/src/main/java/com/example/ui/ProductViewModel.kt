@@ -45,6 +45,13 @@ class ProductViewModel(
             initialValue = emptyList()
         )
 
+    val unreadNotificationCount: StateFlow<Int> = repository.unreadNotificationCount
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     // Filtered products list based on search and selected category
     val filteredProducts: StateFlow<List<Product>> = combine(
         products,
@@ -52,13 +59,13 @@ class ProductViewModel(
         _selectedCategory
     ) { productsList, query, category ->
         productsList.filter { product ->
-            val matchesSearch = query.isEmpty() || 
-                    product.name.contains(query, ignoreCase = true) || 
+            val matchesSearch = query.isEmpty() ||
+                    product.name.contains(query, ignoreCase = true) ||
                     product.code.contains(query, ignoreCase = true) ||
                     product.category.contains(query, ignoreCase = true)
-            
+
             val matchesCategory = category == "Tất cả" || product.category == category
-            
+
             matchesSearch && matchesCategory
         }
     }.stateIn(
@@ -180,7 +187,7 @@ class ProductViewModel(
                 imageUrls = imageUrls
             )
             repository.insertProduct(product)
-            
+
             // Add notification
             repository.insertNotification(
                 WarehouseNotification(
@@ -253,7 +260,7 @@ class ProductViewModel(
 
             val actionType = if (amount > 0) "Tăng" else "Giảm"
             val typeStr = if (amount > 0) "success" else "info"
-            
+
             repository.insertNotification(
                 WarehouseNotification(
                     title = "Điều chỉnh tồn kho",
@@ -272,6 +279,30 @@ class ProductViewModel(
                     )
                 )
             }
+        }
+    }
+
+    fun markNotificationAsRead(notificationId: Int) {
+        viewModelScope.launch {
+            repository.markNotificationAsRead(notificationId)
+        }
+    }
+
+    fun markNotificationAsUnread(notificationId: Int) {
+        viewModelScope.launch {
+            repository.markNotificationAsUnread(notificationId)
+        }
+    }
+
+    fun markAllNotificationsAsRead() {
+        viewModelScope.launch {
+            repository.markAllNotificationsAsRead()
+        }
+    }
+
+    fun deleteNotification(notification: WarehouseNotification) {
+        viewModelScope.launch {
+            repository.deleteNotification(notification)
         }
     }
 

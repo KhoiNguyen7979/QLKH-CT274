@@ -1,11 +1,15 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -13,13 +17,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.example.data.Product
-import com.example.ui.theme.*
+import com.example.ui.theme.CategoryFolders
+import com.example.ui.theme.WarehouseRed
+import com.example.ui.theme.WarehouseRedLight
+import java.io.File
 
 @Composable
 fun DashboardScreen(
@@ -27,213 +38,412 @@ fun DashboardScreen(
     onProductClick: (Product) -> Unit,
     onNavigateToTab: (Int) -> Unit
 ) {
-    val foldersCount = products.map { it.category }.distinct().size
-    val itemsCount = products.size
-    val totalQty = products.sumOf { it.quantity }
-    val totalVal = products.sumOf { it.quantity * it.price }
-    
-    val lowStockProducts = products.filter { it.quantity <= 8 }.sortedBy { it.quantity }
+    val scrollState = rememberScrollState()
 
-    LazyColumn(
+    // Calculate metrics
+    val totalUniqueItems = products.size
+    val totalCategories = products.map { it.category }.distinct().size
+    val totalQuantity = products.sumOf { it.quantity }
+    val totalValue = products.sumOf { it.quantity * it.price }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(16.dp)
+            .verticalScroll(scrollState)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        item {
-            Text(
-                text = "Tổng quan kho hàng",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-
-        // Stats Grid
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        StatCard(
-                            title = "Danh mục",
-                            value = foldersCount.toString(),
-                            icon = Icons.Rounded.Category,
-                            color = CategoryFolders,
-                            modifier = Modifier.weight(1f).clickable { onNavigateToTab(1) }
+        // Red Hero Card at the top with a gorgeous gradient
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(WarehouseRed, WarehouseRed.copy(alpha = 0.85f))
+                    )
+                )
+                .padding(horizontal = 20.dp, vertical = 24.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Hệ thống Kho hàng",
+                            fontSize = 14.sp,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontWeight = FontWeight.Medium
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        StatCard(
-                            title = "Sản phẩm",
-                            value = itemsCount.toString(),
-                            icon = Icons.Rounded.Inventory2,
-                            color = WarehouseRed,
-                            modifier = Modifier.weight(1f).clickable { onNavigateToTab(1) }
+                        Text(
+                            text = "HÔM NAY",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                            letterSpacing = 1.sp
                         )
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+
+                    // Quick Action: Add Product shortcut
+                    Card(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { onNavigateToTab(1) }, // Go to Items tab
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f))
                     ) {
-                        StatCard(
-                            title = "Tổng tồn kho",
-                            value = formatCompactNumber(totalQty),
-                            icon = Icons.Rounded.Numbers,
-                            color = Color(0xFF673AB7),
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        StatCard(
-                            title = "Tổng giá trị",
-                            value = formatCompactCurrency(totalVal),
-                            icon = Icons.Rounded.AccountBalanceWallet,
-                            color = Color(0xFF009688),
-                            modifier = Modifier.weight(1f)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.List,
+                                contentDescription = "Xem danh sách",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Xem kho",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Beautiful Total Valuation
+                Text(
+                    text = "TỔNG TRỊ GIÁ TỒN KHO",
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
+                )
+                Text(
+                    text = formatCurrency(totalValue),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
             }
         }
 
-        // Quick Actions
-        item {
-            Text(
-                text = "Truy cập nhanh",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 12.dp)
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Inventory Summary section (circular summary bubbles from the mockup drawings!)
+        Text(
+            text = "INVENTORY SUMMARY",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            letterSpacing = 1.sp
+        )
+
+        // Row 1: Items Count & Folders/Categories Count
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            SummaryCircleMetricCard(
+                value = totalUniqueItems.toString(),
+                label = "Items",
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickActionItem(
-                    text = "Tìm kiếm",
-                    icon = Icons.Rounded.Search,
-                    onClick = { onNavigateToTab(3) },
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionItem(
-                    text = "Thông báo",
-                    icon = Icons.Rounded.Notifications,
-                    onClick = { onNavigateToTab(2) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            SummaryCircleMetricCard(
+                value = totalCategories.toString(),
+                label = "Folders",
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+            )
         }
 
-        // Low Stock Warning
-        item {
-            Row(
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Row 2: Total Quantity & Total Value
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            SummaryCircleMetricCard(
+                value = formatCompactNumber(totalQuantity),
+                label = "Total quantity",
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+            )
+            SummaryCircleMetricCard(
+                value = formatCompactCurrency(totalValue),
+                label = "Total value",
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Recent items header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "RECENT ITEMS",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                letterSpacing = 1.sp
+            )
+            Text(
+                text = "Xem tất cả",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = WarehouseRed,
+                modifier = Modifier.clickable { onNavigateToTab(1) } // Go to items tab
+            )
+        }
+
+        // Horizontal Recent Items Carousel
+        if (products.isEmpty()) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 24.dp, bottom = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .height(150.dp)
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Sắp hết hàng (${lowStockProducts.size})",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (lowStockProducts.isNotEmpty()) WarehouseRed else MaterialTheme.colorScheme.onBackground
+                    text = "Không có sản phẩm nào gần đây",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                 )
-                if (lowStockProducts.size > 3) {
-                    Text(
-                        text = "Xem tất cả",
-                        fontSize = 12.sp,
-                        color = WarehouseRed,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable { onNavigateToTab(1) }
+            }
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(products.take(6)) { product ->
+                    RecentItemCard(
+                        product = product,
+                        onClick = { onProductClick(product) }
                     )
                 }
             }
         }
 
-        if (lowStockProducts.isEmpty()) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-                ) {
-                    Box(modifier = Modifier.padding(24.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text("Mọi thứ đều ổn, tồn kho đầy đủ!", fontSize = 13.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Quick low stock alert cards panel
+        val lowStockProducts = products.filter { it.quantity <= 10 }
+        if (lowStockProducts.isNotEmpty()) {
+            Text(
+                text = "CẢNH BÁO TỒN KHO THẤP",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = WarehouseRed,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                letterSpacing = 1.sp
+            )
+
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp)
+            ) {
+                lowStockProducts.forEach { product ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onProductClick(product) }
+                            .strongGlassShine(),
+                        colors = CardDefaults.cardColors(containerColor = WarehouseRedLight),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Warning,
+                                contentDescription = "Cảnh báo",
+                                tint = WarehouseRed,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${product.name} (Mã: ${product.code}) sắp hết hàng!",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = WarehouseRed,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "${product.quantity} chiếc",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Black,
+                                color = WarehouseRed
+                            )
+                        }
                     }
                 }
             }
-        } else {
-            items(lowStockProducts.take(5), key = { "low_${it.id}" }) { product ->
-                ProductListItem(
-                    product = product,
-                    onClick = { onProductClick(product) },
-                    onEditClick = { },
-                    onAdjustStock = { }
-                )
-            }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
-        }
+        Spacer(modifier = Modifier.height(100.dp)) // Space for bottom bar
     }
 }
 
+// Custom Bubble summary card design matching the user's mockup circles!
 @Composable
-fun StatCard(
-    title: String,
+fun SummaryCircleMetricCard(
     value: String,
-    icon: ImageVector,
-    color: Color,
+    label: String,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f))
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Black, color = color)
-            Text(text = title, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = color.copy(alpha = 0.7f))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Rounded filled circular badge for the number
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(CategoryFolders.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = value,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black,
+                    color = CategoryFolders,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
+// Carousel Card matching the visual image grid shown in Image 1: "RECENT ITEMS"
 @Composable
-fun QuickActionItem(
-    text: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+fun RecentItemCard(
+    product: Product,
+    onClick: () -> Unit
 ) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.height(50.dp),
+    val meta = CategoryRegistry.getMeta(product.category)
+
+    Card(
+        modifier = Modifier
+            .width(130.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .strongGlassShine(),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 1.dp
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        Column(
+            modifier = Modifier.padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Gray)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = text, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            // Rounded square matching user's image grid
+            Box(
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(meta.color.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (product.imageUrls.isNotEmpty() && !product.imageUrls.first().startsWith("preset_")) {
+                    Image(
+                        painter = rememberAsyncImagePainter(File(product.imageUrls.first())),
+                        contentDescription = product.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = meta.icon,
+                            contentDescription = product.name,
+                            tint = meta.color,
+                            modifier = Modifier.size(36.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "Mã: ${product.code.take(6)}...",
+                            fontSize = 9.sp,
+                            color = meta.color,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = product.name,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = "${product.quantity} Qty",
+                fontSize = 11.sp,
+                color = if (product.quantity <= 10) WarehouseRed else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [Product::class, WarehouseNotification::class], version = 2, exportSchema = false)
+@Database(entities = [Product::class, WarehouseNotification::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class WarehouseDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
@@ -22,8 +22,8 @@ abstract class WarehouseDatabase : RoomDatabase() {
                     WarehouseDatabase::class.java,
                     "warehouse_database"
                 )
-                .fallbackToDestructiveMigration()
-                .build()
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

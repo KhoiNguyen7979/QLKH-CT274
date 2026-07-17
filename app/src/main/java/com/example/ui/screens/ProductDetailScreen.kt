@@ -49,7 +49,7 @@ fun ProductDetailScreen(
 
     val meta = CategoryRegistry.getMeta(product.category)
     val scrollState = rememberScrollState()
-    
+
     // Dialog state for delete confirmation
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -94,10 +94,10 @@ fun ProductDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Product Hero Visual Box (Swipeable Images)
-            val pagerState = rememberPagerState(pageCount = { 
-                if (product.imageUrls.isEmpty()) 1 else product.imageUrls.size 
+            val pagerState = rememberPagerState(pageCount = {
+                if (product.imageUrls.isEmpty()) 1 else product.imageUrls.size
             })
-            
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,8 +112,8 @@ fun ProductDetailScreen(
                     ) { page ->
                         val url = product.imageUrls[page]
                         if (url.startsWith("preset_")) {
-                             // Handle presets if any
-                             Icon(
+                            // Handle presets if any
+                            Icon(
                                 imageVector = meta.icon,
                                 contentDescription = null,
                                 tint = meta.color,
@@ -128,7 +128,7 @@ fun ProductDetailScreen(
                             )
                         }
                     }
-                    
+
                     // Page indicator
                     if (product.imageUrls.size > 1) {
                         Row(
@@ -170,9 +170,9 @@ fun ProductDetailScreen(
                                 modifier = Modifier.size(54.dp)
                             )
                         }
-                        
+
                         Spacer(modifier = Modifier.height(12.dp))
-                        
+
                         Text(
                             text = "Mã sản phẩm: ${product.code}",
                             fontSize = 15.sp,
@@ -309,7 +309,7 @@ fun ProductDetailScreen(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         letterSpacing = 1.sp
                     )
-                    
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     DetailSpecRow(icon = Icons.Rounded.AttachMoney, label = "Đơn giá", value = formatCurrency(product.price))
@@ -319,8 +319,8 @@ fun ProductDetailScreen(
                     DetailSpecRow(icon = Icons.Rounded.Folder, label = "Thư mục/Phân loại", value = product.category)
                     DetailSpecDivider()
                     DetailSpecRow(
-                        icon = Icons.Rounded.Equalizer, 
-                        label = "Tổng giá trị", 
+                        icon = Icons.Rounded.Equalizer,
+                        label = "Tổng giá trị",
                         value = formatCurrency(product.quantity * product.price),
                         valueColor = MaterialTheme.colorScheme.primary
                     )
