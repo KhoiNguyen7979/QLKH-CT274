@@ -25,28 +25,32 @@
 
 ```
 app/src/main/java/com/example/
-├── MainActivity.kt                  # Entry point, Navigation, Bottom Nav
+├── MainActivity.kt                      # Entry point
 ├── data/
-│   ├── Product.kt                   # Room Entity + TypeConverter
-│   ├── ProductDao.kt                # Room DAO
-│   ├── ProductRepository.kt         # Repository
-│   ├── WarehouseDatabase.kt         # Room Database (v3)
-│   └── WarehouseNotification.kt     # Notification Entity
+│   ├── Product.kt                       # Room Entity + TypeConverter
+│   ├── ProductDao.kt                    # Room DAO (products)
+│   ├── NotificationDao.kt               # Room DAO (notifications)
+│   ├── ProductRepository.kt             # Repository
+│   ├── WarehouseDatabase.kt             # Room Database (v4)
+│   └── WarehouseNotification.kt         # Notification Entity
 └── ui/
-    ├── ProductViewModel.kt          # ViewModel + state management
-    ├── screens/
-    │   ├── DashboardScreen.kt       # Bảng điều khiển
-    │   ├── ItemsListScreen.kt       # Danh sách sản phẩm + lọc
-    │   ├── ProductDetailScreen.kt   # Chi tiết sản phẩm
-    │   ├── AddEditProductScreen.kt  # Form thêm/sửa sản phẩm
-    │   ├── SearchScreen.kt          # Màn hình tìm kiếm
-    │   ├── NotificationsScreen.kt   # Hộp thư thông báo
-    │   ├── WarehouseUiComponents.kt # Thành phần UI chung
-    │   └── GlassShineEffect.kt      # Hiệu ứng gương sáng
-    └── theme/
-        ├── Color.kt
-        ├── Theme.kt
-        └── Type.kt
+    ├── ProductViewModel.kt              # ViewModel + state management
+    ├── navigation/
+    │   └── WarehouseNavigation.kt       # Navigation graph
+    └── screens/
+        ├── MainTabsContainer.kt         # Scaffold + tab routing
+        ├── DashboardScreen.kt           # Bảng điều khiển
+        ├── ItemsListScreen.kt           # Danh sách sản phẩm
+        ├── AdvancedFilterSheet.kt       # Bộ lọc nâng cao
+        ├── FilterModels.kt              # Enums + validation
+        ├── ProductDetailScreen.kt       # Chi tiết sản phẩm
+        ├── AddEditProductScreen.kt      # Form thêm/sửa sản phẩm
+        ├── SearchScreen.kt              # Màn hình tìm kiếm
+        ├── NotificationsScreen.kt       # Hộp thư thông báo
+        ├── WarehouseBottomBar.kt        # Bottom navigation
+        ├── WarehouseMenuSheet.kt        # Menu sheet
+        ├── WarehouseUiComponents.kt     # Header, Cards, Formatters
+        └── GlassShineEffect.kt          # Hiệu ứng gương sáng
 ```
 
 ## Cài đặt
@@ -57,9 +61,7 @@ app/src/main/java/com/example/
 - **JDK**: 11
 
 ```bash
-# Clone repository
 git clone <repo-url>
-
 # Mở trong Android Studio và sync Gradle
 # Chạy trên emulator hoặc thiết bị thật
 ```
@@ -67,5 +69,5 @@ git clone <repo-url>
 ## Lưu ý
 
 - Dữ liệu mẫu (5 sản phẩm) sẽ tự động được tạo khi chạy lần đầu
-- File `.env` được Secrets Gradle Plugin sử dụng (copy từ `.env.example` nếu cần)
-- Firebase đã được cấu hình sẵn nhưng không bắt buộc (sẽ hiện cảnh báo nếu không có `google-services.json`)
+- Room database sử dụng migration từ v3 → v4 (tách notification DAO)
+- `LOW_STOCK_THRESHOLD = 10` được định nghĩa tập trung trong `FilterModels.kt`

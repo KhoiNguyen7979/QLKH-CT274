@@ -2,19 +2,27 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Warehouse theme colors (Red accent theme)
-val WarehouseRed = Color(0xFFE50F0F)
-val WarehouseRedDark = Color(0xFFB30B0B)
-val WarehouseRedLight = Color(0xFFFFECEC)
+// Primary brand — Blue Navy
+val WarehouseBlue = Color(0xFF1565C0)
+val WarehouseBlueDark = Color(0xFF0D47A1)
+val WarehouseBlueLight = Color(0xFFE3F2FD)
 
-val DeepDarkBackground = Color(0xFF121212)
-val CardDarkSurface = Color(0xFF1E1E1E)
+// Semantic
+val StockWarning = Color(0xFFFF9800)
+val StockDanger = Color(0xFFE53935)
+val StockSafe = Color(0xFF43A047)
 
-val LightBackground = Color(0xFFF6F8FA)
-val CardLightSurface = Color(0xFFFFFFFF)
+// Surfaces — Light
+val LightBackground = Color(0xFFF5F7FA)
+val LightSurface = Color(0xFFFFFFFF)
 
-val CategoryTech = Color(0xFF00ADB5)
-val CategoryFashion = Color(0xFFFF5722)
-val CategoryFolders = Color(0xFF2F80ED)
-val CategoryFood = Color(0xFF4CAF50)
-val CategoryGeneral = Color(0xFF607D8B)
+// Surfaces — Dark
+val DarkBackground = Color(0xFF0F1118)
+val DarkSurface = Color(0xFF1A1D27)
+
+// Category
+val CategoryTech = Color(0xFF0097A7)
+val CategoryFashion = Color(0xFF7B1FA2)
+val CategoryFolders = Color(0xFF1565C0)
+val CategoryFood = Color(0xFF2E7D32)
+val CategoryGeneral = Color(0xFF546E7A)

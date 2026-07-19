@@ -5,7 +5,6 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import java.io.Serializable
 
 @Entity(tableName = "products")
 data class Product(
@@ -18,7 +17,7 @@ data class Product(
     val description: String = "",
     val imageUrls: List<String> = emptyList(),
     val lastUpdated: Long = System.currentTimeMillis()
-) : Serializable
+)
 
 class Converters {
     private val moshi = Moshi.Builder().build()
