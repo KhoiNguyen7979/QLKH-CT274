@@ -21,14 +21,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.R
 import com.example.data.Product
+import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.ui.utils.*
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -93,31 +96,56 @@ fun AddEditProductScreen(
 
     fun validateAndSubmit() {
         if (name.trim().isEmpty()) {
-            errorMessage = "Vui lòng nhập tên sản phẩm!"
+            errorMessage = context.getString(R.string.error_empty_name)
             showErrorAlert = true
         } else if (code.trim().isEmpty()) {
-            errorMessage = "Vui lòng nhập mã sản phẩm!"
+            errorMessage = context.getString(R.string.error_empty_code)
             showErrorAlert = true
         } else {
-            onSubmit(name.trim(), code.trim(), quantityStr.toIntOrNull() ?: 0, priceStr.toDoubleOrNull() ?: 0.0, category, description.trim(), imageUrls.filter { it.isNotEmpty() })
+            onSubmit(
+                name.trim(),
+                code.trim(),
+                quantityStr.toIntOrNull() ?: 0,
+                priceStr.toDoubleOrNull() ?: 0.0,
+                category,
+                description.trim(),
+                imageUrls.filter { it.isNotEmpty() }
+            )
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = if (isEditMode) "Sửa sản phẩm" else "Thêm sản phẩm", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary) },
+                title = {
+                    Text(
+                        text = if (isEditMode) stringResource(R.string.title_edit_product)
+                        else stringResource(R.string.title_add_product),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Quay lại", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(R.string.content_desc_back),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { validateAndSubmit() }) {
-                        Icon(imageVector = Icons.Rounded.Check, contentDescription = "Lưu", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = stringResource(R.string.content_desc_save),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     ) { innerPadding ->
@@ -129,8 +157,10 @@ fun AddEditProductScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
-            // Image section
-            SectionHeader(title = "HÌNH ẢNH SẢN PHẨM", modifier = Modifier.padding(bottom = 8.dp))
+            SectionHeader(
+                title = stringResource(R.string.section_product_images),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
             WarehouseCard(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -149,20 +179,43 @@ fun AddEditProductScreen(
                         val url = imageUrls[page]
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             if (url.isNotEmpty() && !url.startsWith("preset_")) {
-                                Image(painter = rememberAsyncImagePainter(File(url)), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                Image(
+                                    painter = rememberAsyncImagePainter(File(url)),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
                             } else {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.padding(8.dp)) {
-                                    Icon(imageVector = Icons.Rounded.AddAPhoto, contentDescription = "Thêm ảnh", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.AddAPhoto,
+                                        contentDescription = stringResource(R.string.content_desc_add_image),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(40.dp)
+                                    )
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text(text = "Hình ảnh ${page + 1}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = stringResource(R.string.image_slot_label, page + 1),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
                     }
 
-                    Row(Modifier.height(20.dp).fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        Modifier.height(20.dp).fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         repeat(4) { iteration ->
-                            val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                            val color =
+                                if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outlineVariant
                             Box(modifier = Modifier.padding(2.dp).clip(CircleShape).background(color).size(6.dp))
                         }
                     }
@@ -191,9 +244,19 @@ fun AddEditProductScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (url.isNotEmpty() && !url.startsWith("preset_")) {
-                                    Image(painter = rememberAsyncImagePainter(File(url)), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                    Image(
+                                        painter = rememberAsyncImagePainter(File(url)),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
                                 } else {
-                                    Icon(imageVector = Icons.Rounded.Image, contentDescription = "Ô trống", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                                    Icon(
+                                        imageVector = Icons.Rounded.Image,
+                                        contentDescription = stringResource(R.string.content_desc_empty_slot),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
                             }
                         }
@@ -201,14 +264,16 @@ fun AddEditProductScreen(
                 }
             }
 
-            // Form fields
-            SectionHeader(title = "THÔNG TIN HÀNG HÓA", modifier = Modifier.padding(bottom = 8.dp))
+            SectionHeader(
+                title = stringResource(R.string.section_product_info),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Tên sản phẩm *") },
-                placeholder = { Text("Nhập tên sản phẩm (ví dụ: Áo thun Polo)") },
+                label = { Text(stringResource(R.string.field_product_name)) },
+                placeholder = { Text(stringResource(R.string.field_product_name_placeholder)) },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true
@@ -217,11 +282,15 @@ fun AddEditProductScreen(
             OutlinedTextField(
                 value = code,
                 onValueChange = { code = it },
-                label = { Text("Mã sản phẩm *") },
-                placeholder = { Text("Mã SKU (ví dụ: TH363636)") },
+                label = { Text(stringResource(R.string.field_product_code)) },
+                placeholder = { Text(stringResource(R.string.field_product_code_placeholder)) },
                 trailingIcon = {
                     IconButton(onClick = { generateRandomSKU() }) {
-                        Icon(imageVector = Icons.Rounded.Autorenew, contentDescription = "Tạo mã ngẫu nhiên", tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            imageVector = Icons.Rounded.Autorenew,
+                            contentDescription = stringResource(R.string.content_desc_random_sku),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
@@ -233,31 +302,41 @@ fun AddEditProductScreen(
                 OutlinedTextField(
                     value = category,
                     onValueChange = {},
-                    label = { Text("Danh mục / Thư mục *") },
+                    label = { Text(stringResource(R.string.field_category)) },
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { categoryExpanded = !categoryExpanded }) {
                             Icon(
                                 imageVector = if (categoryExpanded) Icons.Rounded.ArrowDropUp else Icons.Rounded.ArrowDropDown,
-                                contentDescription = "Menu xổ xuống"
+                                contentDescription = stringResource(R.string.content_desc_dropdown)
                             )
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium
                 )
-                DropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }, modifier = Modifier.fillMaxWidth(0.9f)) {
+                DropdownMenu(
+                    expanded = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false },
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
                     categoryOptions.forEach { option ->
-                        DropdownMenuItem(text = { Text(option) }, onClick = { category = option; categoryExpanded = false })
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = { category = option; categoryExpanded = false }
+                        )
                     }
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedTextField(
                     value = quantityStr,
                     onValueChange = { quantityStr = it },
-                    label = { Text("Số lượng tồn kho *") },
+                    label = { Text(stringResource(R.string.field_quantity)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.medium,
@@ -266,7 +345,7 @@ fun AddEditProductScreen(
                 OutlinedTextField(
                     value = priceStr,
                     onValueChange = { priceStr = it },
-                    label = { Text("Đơn giá (₫) *") },
+                    label = { Text(stringResource(R.string.field_unit_price)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.medium,
@@ -277,25 +356,42 @@ fun AddEditProductScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Mô tả sản phẩm") },
-                placeholder = { Text("Nhập thông tin mô tả chi tiết, khu vực lưu trữ...") },
+                label = { Text(stringResource(R.string.field_description)) },
+                placeholder = { Text(stringResource(R.string.field_description_placeholder)) },
                 modifier = Modifier.fillMaxWidth().height(110.dp).padding(bottom = 16.dp),
                 shape = MaterialTheme.shapes.medium,
                 maxLines = 4
             )
 
-            // Total value calculator
             Card(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                ),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Column {
-                        Text(text = "TỔNG TRỊ GIÁ SẢN PHẨM", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                        Text(text = "Công thức: Số lượng x Đơn giá", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = stringResource(R.string.total_product_value_title),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.total_product_value_formula),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    Text(text = formatCurrency(totalValue), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = formatCurrency(totalValue),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
@@ -305,11 +401,19 @@ fun AddEditProductScreen(
         if (showErrorAlert) {
             AlertDialog(
                 onDismissRequest = { showErrorAlert = false },
-                title = { Text("Lỗi nhập liệu") },
+                title = { Text(stringResource(R.string.dialog_validation_title)) },
                 text = { Text(errorMessage) },
                 confirmButton = {
-                    Button(onClick = { showErrorAlert = false }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                        Text("Đồng ý", color = MaterialTheme.colorScheme.onError)
+                    Button(
+                        onClick = { showErrorAlert = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text(
+                            stringResource(R.string.dialog_validation_confirm),
+                            color = MaterialTheme.colorScheme.onError
+                        )
                     }
                 }
             )

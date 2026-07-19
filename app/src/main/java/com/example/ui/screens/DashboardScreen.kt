@@ -1,14 +1,11 @@
 package com.example.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -16,15 +13,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import com.example.R
 import com.example.data.Product
+import com.example.ui.components.*
 import com.example.ui.theme.*
-import java.io.File
+import com.example.ui.utils.*
 
 @Composable
 fun DashboardScreen(
@@ -50,7 +45,7 @@ fun DashboardScreen(
         WarehouseCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    text = "TỔNG TRỊ GIÁ TỒN KHO",
+                    text = stringResource(R.string.dashboard_total_value_title),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -66,7 +61,7 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         SectionHeader(
-            title = "TỔNG QUAN KHO HÀNG",
+            title = stringResource(R.string.dashboard_overview_title),
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
 
@@ -74,10 +69,38 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard(label = "Sản phẩm", value = totalUniqueItems.toString(), modifier = Modifier.weight(1f), variant = StatVariant.Rich, icon = Icons.Rounded.Folder, iconTint = CategoryFolders)
-            StatCard(label = "Thư mục", value = totalCategories.toString(), modifier = Modifier.weight(1f), variant = StatVariant.Rich, icon = Icons.Rounded.Folder, iconTint = CategoryFashion)
-            StatCard(label = "Tổng SL", value = formatCompactNumber(totalQuantity), modifier = Modifier.weight(1f), variant = StatVariant.Rich, icon = Icons.Rounded.Folder, iconTint = CategoryFood)
-            StatCard(label = "Trị giá", value = formatCompactCurrency(totalValue), modifier = Modifier.weight(1f), variant = StatVariant.Rich, icon = Icons.Rounded.AttachMoney, iconTint = CategoryTech)
+            StatCard(
+                label = stringResource(R.string.stat_products),
+                value = totalUniqueItems.toString(),
+                modifier = Modifier.weight(1f),
+                variant = StatVariant.Rich,
+                icon = Icons.Rounded.Folder,
+                iconTint = CategoryFolders
+            )
+            StatCard(
+                label = stringResource(R.string.stat_folders),
+                value = totalCategories.toString(),
+                modifier = Modifier.weight(1f),
+                variant = StatVariant.Rich,
+                icon = Icons.Rounded.Folder,
+                iconTint = CategoryFashion
+            )
+            StatCard(
+                label = stringResource(R.string.stat_total_qty),
+                value = formatCompactNumber(totalQuantity),
+                modifier = Modifier.weight(1f),
+                variant = StatVariant.Rich,
+                icon = Icons.Rounded.Folder,
+                iconTint = CategoryFood
+            )
+            StatCard(
+                label = stringResource(R.string.stat_total_value),
+                value = formatCompactCurrency(totalValue),
+                modifier = Modifier.weight(1f),
+                variant = StatVariant.Rich,
+                icon = Icons.Rounded.AttachMoney,
+                iconTint = CategoryTech
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -87,9 +110,9 @@ fun DashboardScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SectionHeader(title = "SẢN PHẨM GẦN ĐÂY")
+            SectionHeader(title = stringResource(R.string.section_recent_products))
             Text(
-                text = "Xem tất cả",
+                text = stringResource(R.string.btn_view_all),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { onNavigateToTab(1) }
@@ -99,8 +122,8 @@ fun DashboardScreen(
         if (products.isEmpty()) {
             EmptyState(
                 icon = Icons.Rounded.Folder,
-                title = "Không có sản phẩm nào",
-                subtitle = "Thêm sản phẩm để bắt đầu quản lý kho hàng",
+                title = stringResource(R.string.dashboard_empty_title),
+                subtitle = stringResource(R.string.dashboard_empty_subtitle),
                 modifier = Modifier.height(200.dp)
             )
         } else {
@@ -119,7 +142,7 @@ fun DashboardScreen(
         val lowStockProducts = products.filter { it.isLowStock() }
         if (lowStockProducts.isNotEmpty()) {
             SectionHeader(
-                title = "CẢNH BÁO TỒN KHO THẤP",
+                title = stringResource(R.string.section_low_stock_warning),
                 color = StockDanger,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
             )
@@ -138,57 +161,5 @@ fun DashboardScreen(
         }
 
         Spacer(modifier = Modifier.height(100.dp))
-    }
-}
-
-@Composable
-fun RecentItemCard(product: Product, onClick: () -> Unit) {
-    val meta = CategoryRegistry.getMeta(product.category)
-
-    WarehouseCard(
-        modifier = Modifier.width(150.dp),
-        onClick = onClick
-    ) {
-        Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(meta.color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (product.imageUrls.isNotEmpty() && !product.imageUrls.first().startsWith("preset_")) {
-                    Image(
-                        painter = rememberAsyncImagePainter(File(product.imageUrls.first())),
-                        contentDescription = product.name,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Icon(imageVector = meta.icon, contentDescription = product.name, tint = meta.color, modifier = Modifier.size(36.dp))
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Mã: ${product.code.take(6)}...", style = MaterialTheme.typography.labelSmall, color = meta.color)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = product.name,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                text = "${product.quantity} cái",
-                style = MaterialTheme.typography.labelLarge,
-                color = if (product.isLowStock()) StockDanger else MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
     }
 }

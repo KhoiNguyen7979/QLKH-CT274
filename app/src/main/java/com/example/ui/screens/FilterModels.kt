@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import com.example.R
 import com.example.data.Product
 
 const val LOW_STOCK_THRESHOLD = 10
@@ -65,13 +66,13 @@ fun validateFilterRanges(
     maxPrice: Double?,
     minQuantity: Int?,
     maxQuantity: Int?
-): String? {
-    if (minPrice != null && minPrice < 0) return "Giá tối thiểu không được nhỏ hơn 0."
-    if (maxPrice != null && maxPrice < 0) return "Giá tối đa không được nhỏ hơn 0."
-    if (minPrice != null && maxPrice != null && minPrice > maxPrice) return "Giá từ không được lớn hơn giá đến."
-    if (minQuantity != null && minQuantity < 0) return "Số lượng tối thiểu không hợp lệ."
-    if (maxQuantity != null && maxQuantity < 0) return "Số lượng tối đa không hợp lệ."
-    if (minQuantity != null && maxQuantity != null && minQuantity > maxQuantity) return "Số lượng từ không được lớn hơn số lượng đến."
+): Int? {
+    if (minPrice != null && minPrice < 0) return R.string.error_price_min_negative
+    if (maxPrice != null && maxPrice < 0) return R.string.error_price_max_negative
+    if (minPrice != null && maxPrice != null && minPrice > maxPrice) return R.string.error_price_range_invalid
+    if (minQuantity != null && minQuantity < 0) return R.string.error_qty_min_negative
+    if (maxQuantity != null && maxQuantity < 0) return R.string.error_qty_max_negative
+    if (minQuantity != null && maxQuantity != null && minQuantity > maxQuantity) return R.string.error_qty_range_invalid
     return null
 }
 

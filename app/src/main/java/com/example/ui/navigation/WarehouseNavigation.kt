@@ -1,6 +1,7 @@
 package com.example.ui.navigation
 
 import android.app.Application
+import android.content.res.Configuration
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -9,7 +10,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.data.Product
 import com.example.ui.ProductViewModel
 import com.example.ui.screens.*
 import com.example.ui.theme.MyApplicationTheme
@@ -24,7 +24,16 @@ fun WarehouseNavigation() {
         factory = ProductViewModel.Factory(application)
     )
 
-    val isDarkMode by viewModel.isDarkMode.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
+
+    val isSystemDark = (context.resources.configuration.uiMode
+        and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+    val isDarkMode = when (themeMode) {
+        1 -> false
+        2 -> true
+        else -> isSystemDark
+    }
 
     MyApplicationTheme(darkTheme = isDarkMode) {
         NavHost(

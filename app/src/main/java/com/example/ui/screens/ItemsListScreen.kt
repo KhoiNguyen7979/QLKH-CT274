@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.FilterList
@@ -22,10 +21,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.data.Product
+import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.ui.utils.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,40 +64,92 @@ fun ItemsListScreen(
     }
 
     val categoriesList = remember(products) {
-        listOf("Tất cả") + products.map { it.category }.filter { it.isNotBlank() }.distinct().sorted()
+        listOf("Tất cả") + products.map { it.category }
+            .filter { it.isNotBlank() }.distinct().sorted()
     }
 
-    val foldersCount = remember(products) { products.map { it.category }.filter { it.isNotBlank() }.distinct().size }
+    val foldersCount = remember(products) {
+        products.map { it.category }.filter { it.isNotBlank() }.distinct().size
+    }
     val itemsCount = products.size
     val totalQty = remember(products) { products.sumOf { it.quantity } }
     val totalVal = remember(products) { products.sumOf { it.quantity * it.price } }
 
-    val isFiltering = appliedStockFilter != StockFilter.ALL || appliedSortCriteria != SortCriteria.NONE ||
-            appliedMinPrice != null || appliedMaxPrice != null || appliedMinQuantity != null || appliedMaxQuantity != null
+    val isFiltering = appliedStockFilter != StockFilter.ALL ||
+        appliedSortCriteria != SortCriteria.NONE ||
+        appliedMinPrice != null || appliedMaxPrice != null ||
+        appliedMinQuantity != null || appliedMaxQuantity != null
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Stats summary
-            WarehouseCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Row(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    StatCard(label = "Thư mục", value = foldersCount.toString(), modifier = Modifier.weight(1f))
-                    Box(modifier = Modifier.align(Alignment.CenterVertically).height(24.dp).width(0.5.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)))
-                    StatCard(label = "Sản phẩm", value = itemsCount.toString(), modifier = Modifier.weight(1f))
-                    Box(modifier = Modifier.align(Alignment.CenterVertically).height(24.dp).width(0.5.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)))
-                    StatCard(label = "Tổng SL", value = formatCompactNumber(totalQty), modifier = Modifier.weight(1f))
-                    Box(modifier = Modifier.align(Alignment.CenterVertically).height(24.dp).width(0.5.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)))
-                    StatCard(label = "Trị giá", value = formatCompactCurrency(totalVal), modifier = Modifier.weight(1f))
+            WarehouseCard(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    StatCard(
+                        label = stringResource(R.string.stat_folders),
+                        value = foldersCount.toString(),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .height(24.dp)
+                            .width(0.5.dp)
+                            .background(
+                                MaterialTheme.colorScheme.outlineVariant
+                                    .copy(alpha = 0.5f)
+                            )
+                    )
+                    StatCard(
+                        label = stringResource(R.string.stat_products),
+                        value = itemsCount.toString(),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .height(24.dp)
+                            .width(0.5.dp)
+                            .background(
+                                MaterialTheme.colorScheme.outlineVariant
+                                    .copy(alpha = 0.5f)
+                            )
+                    )
+                    StatCard(
+                        label = stringResource(R.string.stat_total_qty),
+                        value = formatCompactNumber(totalQty),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .height(24.dp)
+                            .width(0.5.dp)
+                            .background(
+                                MaterialTheme.colorScheme.outlineVariant
+                                    .copy(alpha = 0.5f)
+                            )
+                    )
+                    StatCard(
+                        label = stringResource(R.string.stat_total_value),
+                        value = formatCompactCurrency(totalVal),
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
 
-            // Search bar
             WarehouseSearchBar(
                 query = searchQuery,
                 onQueryChange = onSearchQueryChange,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
-            // Category chips
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -104,24 +158,37 @@ fun ItemsListScreen(
                     FilterChip(
                         selected = category == selectedCategory,
                         onClick = { onCategorySelected(category) },
-                        label = { Text(text = category, style = MaterialTheme.typography.labelLarge) },
+                        label = {
+                            Text(
+                                text = category,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedContainerColor =
+                                MaterialTheme.colorScheme.primary,
+                            selectedLabelColor =
+                                MaterialTheme.colorScheme.onPrimary,
                             containerColor = MaterialTheme.colorScheme.surface,
-                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            labelColor =
+                                MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
             }
 
-            // Section header + filter
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SectionHeader(title = "DANH SÁCH (${finalDisplayedProducts.size})")
+                SectionHeader(
+                    title = stringResource(
+                        R.string.section_product_list,
+                        finalDisplayedProducts.size
+                    )
+                )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -131,15 +198,26 @@ fun ItemsListScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.FilterList,
-                        contentDescription = "Bộ lọc nâng cao",
-                        tint = if (isFiltering) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        contentDescription = stringResource(
+                            R.string.content_desc_advanced_filter
+                        ),
+                        tint = if (isFiltering)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = if (isFiltering) "Đang lọc" else "Bộ lọc",
+                        text = if (isFiltering)
+                            stringResource(R.string.filter_active_label)
+                        else
+                            stringResource(R.string.filter_inactive_label),
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (isFiltering) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isFiltering)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -147,8 +225,11 @@ fun ItemsListScreen(
             if (finalDisplayedProducts.isEmpty()) {
                 EmptyState(
                     icon = Icons.Rounded.Folder,
-                    title = "Không tìm thấy sản phẩm nào",
-                    subtitle = if (isFiltering) "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm" else "Chưa có sản phẩm nào trong kho",
+                    title = stringResource(R.string.empty_products_title),
+                    subtitle = if (isFiltering)
+                        stringResource(R.string.empty_products_subtitle_filtered)
+                    else
+                        stringResource(R.string.empty_products_subtitle),
                     modifier = Modifier.weight(1f),
                     action = if (isFiltering) {
                         {
@@ -160,24 +241,34 @@ fun ItemsListScreen(
                                 appliedMinQuantity = null
                                 appliedMaxQuantity = null
                             }) {
-                                Icon(imageVector = Icons.Rounded.Refresh, contentDescription = null)
+                                Icon(
+                                    imageVector = Icons.Rounded.Refresh,
+                                    contentDescription = null
+                                )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Xóa bộ lọc")
+                                Text(stringResource(R.string.btn_clear_filter))
                             }
                         }
                     } else null
                 )
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    contentPadding = PaddingValues(
+                        horizontal = 16.dp, vertical = 4.dp
+                    ),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(items = finalDisplayedProducts, key = { it.id }) { product ->
+                    items(
+                        items = finalDisplayedProducts,
+                        key = { it.id }
+                    ) { product ->
                         ProductListItem(
                             product = product,
                             onClick = { onProductClick(product) },
                             onEditClick = { onEditProduct(product) },
-                            onAdjustStock = { amount -> onAdjustStock(product, amount) }
+                            onAdjustStock = { amount ->
+                                onAdjustStock(product, amount)
+                            }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(90.dp)) }
@@ -187,12 +278,19 @@ fun ItemsListScreen(
 
         FloatingActionButton(
             onClick = onAddProductClick,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp, end = 20.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp, end = 20.dp),
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = MaterialTheme.shapes.large
         ) {
-            Icon(imageVector = Icons.Rounded.Add, contentDescription = "Thêm sản phẩm mới")
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = stringResource(
+                    R.string.content_desc_add_product
+                )
+            )
         }
     }
 

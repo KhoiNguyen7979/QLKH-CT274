@@ -2,10 +2,12 @@ package com.example.ui
 
 import android.app.Application
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.R
 import com.example.data.Product
 import com.example.data.ProductRepository
 import com.example.data.WarehouseDatabase
@@ -19,11 +21,21 @@ class ProductViewModel(
     private val repository: ProductRepository
 ) : AndroidViewModel(application) {
 
+    private val prefs = application.getSharedPreferences("warehouse_prefs", 0)
+
+    private fun getString(resId: Int) = getApplication<Application>().getString(resId)
+    private fun getString(resId: Int, vararg args: Any) = getApplication<Application>().getString(resId, *args)
+
     private val _currentTab = MutableStateFlow(0)
     val currentTab: StateFlow<Int> = _currentTab.asStateFlow()
 
-    private val _isDarkMode = MutableStateFlow(false)
-    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+    private val _themeMode = MutableStateFlow(prefs.getInt("theme_mode", 0))
+    val themeMode: StateFlow<Int> = _themeMode.asStateFlow()
+
+    fun setThemeMode(mode: Int) {
+        _themeMode.value = mode
+        prefs.edit { putInt("theme_mode", mode) }
+    }
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -64,29 +76,108 @@ class ProductViewModel(
     fun setTab(index: Int) { _currentTab.value = index }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
     fun setSelectedCategory(category: String) { _selectedCategory.value = category }
-    fun toggleDarkMode() { _isDarkMode.value = !_isDarkMode.value }
 
     private suspend fun seedSampleData() {
         val samples = listOf(
-            Product(name = "Nà ná na nà", code = "TH3636363636", quantity = 36, price = 1010.0, category = "Folders", description = "Sản phẩm đặc biệt từ thiết kế gốc của người dùng.", imageUrls = listOf("preset_user_item")),
-            Product(name = "Áo Thun Polo Premium", code = "AP882910", quantity = 150, price = 25.0, category = "Thời trang", description = "Áo thun polo chất liệu cotton co giãn cao cấp.", imageUrls = listOf("preset_fashion")),
-            Product(name = "Tai Nghe Bluetooth Pro", code = "TN991823", quantity = 8, price = 85.0, category = "Công nghệ", description = "Tai nghe không dây chống ồn chủ động ANC.", imageUrls = listOf("preset_tech")),
-            Product(name = "Bàn Phím Cơ Silent", code = "BP441122", quantity = 25, price = 110.0, category = "Công nghệ", description = "Bàn phím cơ full-size sử dụng switch silent.", imageUrls = listOf("preset_tech2")),
-            Product(name = "Giày Sneaker Run X", code = "GS124509", quantity = 42, price = 65.0, category = "Thời trang", description = "Giày chạy bộ chuyên nghiệp siêu nhẹ.", imageUrls = listOf("preset_sneaker"))
+            Product(
+                name = "Nà ná na nà",
+                code = "TH3636363636",
+                quantity = 36,
+                price = 1_010_000.0,
+                category = "Folders",
+                description = "Sản phẩm đặc biệt từ thiết kế gốc của người dùng.",
+                imageUrls = listOf("preset_user_item")
+            ),
+            Product(
+                name = "Áo Thun Polo Premium",
+                code = "AP882910",
+                quantity = 150,
+                price = 250_000.0,
+                category = "Thời trang",
+                description = "Áo thun polo chất liệu cotton co giãn cao cấp.",
+                imageUrls = listOf("preset_fashion")
+            ),
+            Product(
+                name = "Tai Nghe Bluetooth Pro",
+                code = "TN991823",
+                quantity = 8,
+                price = 850_000.0,
+                category = "Công nghệ",
+                description = "Tai nghe không dây chống ồn chủ động ANC.",
+                imageUrls = listOf("preset_tech")
+            ),
+            Product(
+                name = "Bàn Phím Cơ Silent",
+                code = "BP441122",
+                quantity = 25,
+                price = 1_100_000.0,
+                category = "Công nghệ",
+                description = "Bàn phím cơ full-size sử dụng switch silent.",
+                imageUrls = listOf("preset_tech2")
+            ),
+            Product(
+                name = "Giày Sneaker Run X",
+                code = "GS124509",
+                quantity = 42,
+                price = 650_000.0,
+                category = "Thời trang",
+                description = "Giày chạy bộ chuyên nghiệp siêu nhẹ.",
+                imageUrls = listOf("preset_sneaker")
+            )
         )
         samples.forEach { insertProductSafe(it) }
 
-        insertNotificationSafe(WarehouseNotification(title = "Hệ thống khởi tạo", message = "Đã nạp thành công dữ liệu mẫu của kho hàng.", type = "success"))
-        insertNotificationSafe(WarehouseNotification(title = "Cảnh báo tồn kho thấp", message = "Sản phẩm 'Tai Nghe Bluetooth Pro' (TN991823) chỉ còn 8 chiếc trong kho!", type = "warning"))
+        insertNotificationSafe(
+            WarehouseNotification(
+                title = getString(R.string.notification_title_system_init),
+                message = getString(R.string.notification_msg_system_init),
+                type = "success"
+            )
+        )
+        insertNotificationSafe(
+            WarehouseNotification(
+                title = getString(R.string.notification_title_low_stock),
+                message = getString(R.string.notification_msg_sample_low_stock),
+                type = "warning"
+            )
+        )
     }
 
-    fun addProduct(name: String, code: String, quantity: Int, price: Double, category: String, description: String, imageUrls: List<String>) {
+    fun addProduct(
+        name: String,
+        code: String,
+        quantity: Int,
+        price: Double,
+        category: String,
+        description: String,
+        imageUrls: List<String>
+    ) {
         viewModelScope.launch {
-            val product = Product(name = name, code = code, quantity = quantity, price = price, category = category.ifEmpty { "Chung" }, description = description, imageUrls = imageUrls)
+            val product = Product(
+                name = name,
+                code = code,
+                quantity = quantity,
+                price = price,
+                category = category.ifEmpty { "Chung" },
+                description = description,
+                imageUrls = imageUrls
+            )
             insertProductSafe(product)
-            insertNotificationSafe(WarehouseNotification(title = "Thêm sản phẩm mới", message = "Đã thêm '$name' (Mã: $code) vào kho hàng thành công.", type = "success"))
+            insertNotificationSafe(
+                WarehouseNotification(
+                    title = getString(R.string.notification_title_add_product),
+                    message = getString(R.string.notification_msg_add_product, name, code),
+                    type = "success"
+                )
+            )
             if (quantity <= LOW_STOCK_THRESHOLD) {
-                insertNotificationSafe(WarehouseNotification(title = "Cảnh báo tồn kho thấp", message = "Sản phẩm mới thêm '$name' có số lượng tồn kho thấp: $quantity sản phẩm.", type = "warning"))
+                insertNotificationSafe(
+                    WarehouseNotification(
+                        title = getString(R.string.notification_title_low_stock),
+                        message = getString(R.string.notification_msg_new_low_stock, name, quantity),
+                        type = "warning"
+                    )
+                )
             }
         }
     }
@@ -102,11 +193,36 @@ class ProductViewModel(
             val priceChanged = oldProduct != null && oldProduct.price != product.price
             val imagesChanged = oldProduct != null && oldProduct.imageUrls != product.imageUrls
             val quantityChanged = oldProduct != null && oldProduct.quantity != product.quantity
-            if (nameChanged || codeChanged || categoryChanged || descriptionChanged || priceChanged || imagesChanged) {
-                insertNotificationSafe(WarehouseNotification(title = "Cập nhật sản phẩm", message = "Đã cập nhật thông tin sản phẩm '${product.name}' (Mã: ${product.code}).", type = "info"))
+            if (nameChanged || codeChanged || categoryChanged ||
+                descriptionChanged || priceChanged || imagesChanged
+            ) {
+                insertNotificationSafe(
+                    WarehouseNotification(
+                        title = getString(R.string.notification_title_update_product),
+                        message = getString(
+                            R.string.notification_msg_update_product,
+                            product.name,
+                            product.code
+                        ),
+                        type = "info"
+                    )
+                )
             }
-            if (quantityChanged && product.quantity <= LOW_STOCK_THRESHOLD && (oldProduct == null || oldProduct.quantity > LOW_STOCK_THRESHOLD)) {
-                insertNotificationSafe(WarehouseNotification(title = "Cảnh báo tồn kho thấp", message = "Sản phẩm '${product.name}' hiện chỉ còn lại ${product.quantity} sản phẩm.", type = "warning"))
+            if (quantityChanged &&
+                product.quantity <= LOW_STOCK_THRESHOLD &&
+                oldProduct.quantity > LOW_STOCK_THRESHOLD
+            ) {
+                insertNotificationSafe(
+                    WarehouseNotification(
+                        title = getString(R.string.notification_title_low_stock),
+                        message = getString(
+                            R.string.notification_msg_update_low_stock,
+                            product.name,
+                            product.quantity
+                        ),
+                        type = "warning"
+                    )
+                )
             }
         }
     }
@@ -114,7 +230,17 @@ class ProductViewModel(
     fun deleteProduct(product: Product) {
         viewModelScope.launch {
             deleteProductSafe(product)
-            insertNotificationSafe(WarehouseNotification(title = "Xóa sản phẩm", message = "Đã xóa sản phẩm '${product.name}' (Mã: ${product.code}) khỏi kho hàng.", type = "warning"))
+            insertNotificationSafe(
+                WarehouseNotification(
+                    title = getString(R.string.notification_title_delete_product),
+                    message = getString(
+                        R.string.notification_msg_delete_product,
+                        product.name,
+                        product.code
+                    ),
+                    type = "warning"
+                )
+            )
         }
     }
 
@@ -138,56 +264,132 @@ class ProductViewModel(
         stockAdjustOriginalQty = null
         val currentQty = products.value.find { it.id == product.id }?.quantity ?: return
         if (originalQty == currentQty) return
-        val actionType = if (currentQty > originalQty) "Tăng" else "Giảm"
+        val actionType = if (currentQty > originalQty) {
+            getString(R.string.stock_action_increase)
+        } else {
+            getString(R.string.stock_action_decrease)
+        }
         val typeStr = if (currentQty > originalQty) "success" else "info"
         viewModelScope.launch {
-            insertNotificationSafe(WarehouseNotification(title = "Điều chỉnh tồn kho", message = "$actionType số lượng '${product.name}' từ $originalQty -> $currentQty chiếc.", type = typeStr))
+            insertNotificationSafe(
+                WarehouseNotification(
+                    title = getString(R.string.notification_title_adjust_stock),
+                    message = getString(
+                        R.string.notification_msg_adjust_stock,
+                        actionType,
+                        product.name,
+                        originalQty,
+                        currentQty
+                    ),
+                    type = typeStr
+                )
+            )
             if (currentQty <= LOW_STOCK_THRESHOLD && originalQty > LOW_STOCK_THRESHOLD) {
-                insertNotificationSafe(WarehouseNotification(title = "Cảnh báo tồn kho thấp", message = "Số lượng '${product.name}' giảm mạnh xuống mức cảnh báo: $currentQty sản phẩm.", type = "warning"))
+                insertNotificationSafe(
+                    WarehouseNotification(
+                        title = getString(R.string.notification_title_low_stock),
+                        message = getString(
+                            R.string.notification_msg_adjust_low_stock,
+                            product.name,
+                            currentQty
+                        ),
+                        type = "warning"
+                    )
+                )
             }
         }
     }
 
-    fun markNotificationAsRead(notificationId: Int) { viewModelScope.launch { markNotificationAsReadSafe(notificationId) } }
-    fun markNotificationAsUnread(notificationId: Int) { viewModelScope.launch { markNotificationAsUnreadSafe(notificationId) } }
-    fun markAllNotificationsAsRead() { viewModelScope.launch { markAllNotificationsAsReadSafe() } }
-    fun deleteNotification(notification: WarehouseNotification) { viewModelScope.launch { deleteNotificationSafe(notification) } }
-    fun clearAllNotifications() { viewModelScope.launch { clearNotificationsSafe() } }
+    fun markNotificationAsRead(notificationId: Int) {
+        viewModelScope.launch { markNotificationAsReadSafe(notificationId) }
+    }
+
+    fun markNotificationAsUnread(notificationId: Int) {
+        viewModelScope.launch { markNotificationAsUnreadSafe(notificationId) }
+    }
+
+    fun markAllNotificationsAsRead() {
+        viewModelScope.launch { markAllNotificationsAsReadSafe() }
+    }
+
+    fun deleteNotification(notification: WarehouseNotification) {
+        viewModelScope.launch { deleteNotificationSafe(notification) }
+    }
+
+    fun clearAllNotifications() {
+        viewModelScope.launch { clearNotificationsSafe() }
+    }
 
     private suspend fun insertProductSafe(product: Product) {
-        try { repository.insertProduct(product) } catch (e: Exception) { Log.e("ProductVM", "Insert product failed", e) }
+        try {
+            repository.insertProduct(product)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Insert product failed", e)
+        }
     }
 
     private suspend fun updateProductSafe(product: Product) {
-        try { repository.updateProduct(product) } catch (e: Exception) { Log.e("ProductVM", "Update product failed", e) }
+        try {
+            repository.updateProduct(product)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Update product failed", e)
+        }
     }
 
     private suspend fun deleteProductSafe(product: Product) {
-        try { repository.deleteProduct(product) } catch (e: Exception) { Log.e("ProductVM", "Delete product failed", e) }
+        try {
+            repository.deleteProduct(product)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Delete product failed", e)
+        }
     }
 
     private suspend fun insertNotificationSafe(notification: WarehouseNotification) {
-        try { repository.insertNotification(notification) } catch (e: Exception) { Log.e("ProductVM", "Insert notification failed", e) }
+        try {
+            repository.insertNotification(notification)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Insert notification failed", e)
+        }
     }
 
     private suspend fun markNotificationAsReadSafe(id: Int) {
-        try { repository.markNotificationAsRead(id) } catch (e: Exception) { Log.e("ProductVM", "Mark read failed", e) }
+        try {
+            repository.markNotificationAsRead(id)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Mark read failed", e)
+        }
     }
 
     private suspend fun markNotificationAsUnreadSafe(id: Int) {
-        try { repository.markNotificationAsUnread(id) } catch (e: Exception) { Log.e("ProductVM", "Mark unread failed", e) }
+        try {
+            repository.markNotificationAsUnread(id)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Mark unread failed", e)
+        }
     }
 
     private suspend fun markAllNotificationsAsReadSafe() {
-        try { repository.markAllNotificationsAsRead() } catch (e: Exception) { Log.e("ProductVM", "Mark all read failed", e) }
+        try {
+            repository.markAllNotificationsAsRead()
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Mark all read failed", e)
+        }
     }
 
     private suspend fun deleteNotificationSafe(notification: WarehouseNotification) {
-        try { repository.deleteNotification(notification) } catch (e: Exception) { Log.e("ProductVM", "Delete notification failed", e) }
+        try {
+            repository.deleteNotification(notification)
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Delete notification failed", e)
+        }
     }
 
     private suspend fun clearNotificationsSafe() {
-        try { repository.clearNotifications() } catch (e: Exception) { Log.e("ProductVM", "Clear notifications failed", e) }
+        try {
+            repository.clearNotifications()
+        } catch (e: Exception) {
+            Log.e("ProductVM", "Clear notifications failed", e)
+        }
     }
 
     class Factory(private val application: Application) : ViewModelProvider.Factory {

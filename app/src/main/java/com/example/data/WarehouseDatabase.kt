@@ -20,8 +20,19 @@ abstract class WarehouseDatabase : RoomDatabase() {
 
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("CREATE TABLE IF NOT EXISTS `notification_dao` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `type` TEXT NOT NULL DEFAULT 'info', `isRead` INTEGER NOT NULL DEFAULT 0)")
-                db.execSQL("INSERT OR IGNORE INTO `notification_dao` SELECT * FROM `warehouse_notifications`")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `notification_dao` " +
+                    "(`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`title` TEXT NOT NULL, " +
+                    "`message` TEXT NOT NULL, " +
+                    "`timestamp` INTEGER NOT NULL, " +
+                    "`type` TEXT NOT NULL DEFAULT 'info', " +
+                    "`isRead` INTEGER NOT NULL DEFAULT 0)"
+                )
+                db.execSQL(
+                    "INSERT OR IGNORE INTO `notification_dao` " +
+                    "SELECT * FROM `warehouse_notifications`"
+                )
             }
         }
 

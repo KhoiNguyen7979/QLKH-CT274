@@ -10,8 +10,11 @@ import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.data.Product
+import com.example.ui.components.*
 import com.example.ui.theme.*
 
 @Composable
@@ -23,7 +26,10 @@ fun SearchScreen(
     onEditProduct: (Product) -> Unit,
     onAdjustStock: (Product, Int) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         WarehouseSearchBar(
             query = searchQuery,
             onQueryChange = onSearchQueryChange,
@@ -31,25 +37,33 @@ fun SearchScreen(
         )
 
         SectionHeader(
-            title = if (searchQuery.isEmpty()) "GỢI Ý TÌM KIẾM" else "KẾT QUẢ TÌM KIẾM (${filteredProducts.size})",
+            title = if (searchQuery.isEmpty())
+                stringResource(R.string.search_suggestions_header)
+            else
+                stringResource(
+                    R.string.search_results_header,
+                    filteredProducts.size
+                ),
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
         )
 
         if (searchQuery.isEmpty()) {
             EmptyState(
                 icon = Icons.Rounded.Search,
-                title = "Chưa có nội dung",
-                subtitle = "Nhập tên sản phẩm, mã hoặc danh mục hàng hóa vào ô tìm kiếm để tra cứu tồn kho."
+                title = stringResource(R.string.search_empty_title),
+                subtitle = stringResource(R.string.search_empty_subtitle)
             )
         } else if (filteredProducts.isEmpty()) {
             EmptyState(
                 icon = Icons.Rounded.SearchOff,
-                title = "Không tìm thấy kết quả",
-                subtitle = "Thử tìm kiếm với một từ khóa khác hoặc kiểm tra lại chính tả."
+                title = stringResource(R.string.search_no_results_title),
+                subtitle = stringResource(R.string.search_no_results_subtitle)
             )
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(
+                    horizontal = 16.dp, vertical = 8.dp
+                ),
                 modifier = Modifier.weight(1f)
             ) {
                 items(filteredProducts, key = { it.id }) { product ->
@@ -57,7 +71,9 @@ fun SearchScreen(
                         product = product,
                         onClick = { onProductClick(product) },
                         onEditClick = { onEditProduct(product) },
-                        onAdjustStock = { amount -> onAdjustStock(product, amount) }
+                        onAdjustStock = { amount ->
+                            onAdjustStock(product, amount)
+                        }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(100.dp)) }

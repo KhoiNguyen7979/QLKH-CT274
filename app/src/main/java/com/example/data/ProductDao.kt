@@ -16,7 +16,13 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE id = :id")
     suspend fun getProductById(id: Int): Product?
 
-    @Query("SELECT * FROM products WHERE name LIKE '%' || :query || '%' OR code LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' ORDER BY lastUpdated DESC")
+    @Query(
+        "SELECT * FROM products " +
+        "WHERE name LIKE '%' || :query || '%' " +
+        "OR code LIKE '%' || :query || '%' " +
+        "OR category LIKE '%' || :query || '%' " +
+        "ORDER BY lastUpdated DESC"
+    )
     fun searchProducts(query: String): Flow<List<Product>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

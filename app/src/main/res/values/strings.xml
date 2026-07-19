@@ -1,3 +1,191 @@
 <resources>
     <string name="app_name">Quản lý Kho</string>
+
+    <!-- Tabs -->
+    <string name="tab_dashboard">Tổng quan</string>
+    <string name="tab_inventory">Kho hàng</string>
+    <string name="tab_notifications">Thông báo</string>
+    <string name="tab_search">Tìm kiếm</string>
+
+    <!-- Categories -->
+    <string name="filter_all">Tất cả</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_more_options">Thêm lựa chọn</string>
+    <string name="content_desc_back">Quay lại</string>
+    <string name="content_desc_edit">Chỉnh sửa</string>
+    <string name="content_desc_save">Lưu</string>
+    <string name="content_desc_search">Tìm kiếm</string>
+    <string name="content_desc_clear_search">Xóa tìm kiếm</string>
+    <string name="content_desc_add_product">Thêm sản phẩm mới</string>
+    <string name="content_desc_add_image">Thêm ảnh</string>
+    <string name="content_desc_empty_slot">Ô trống</string>
+    <string name="content_desc_random_sku">Tạo mã ngẫu nhiên</string>
+    <string name="content_desc_dropdown">Menu xổ xuống</string>
+    <string name="content_desc_decrease_one">Giảm 1</string>
+    <string name="content_desc_increase_one">Tăng 1</string>
+    <string name="content_desc_warning">Cảnh báo</string>
+    <string name="content_desc_delete_notification">Xóa thông báo</string>
+    <string name="content_desc_advanced_filter">Bộ lọc nâng cao</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_total_value_title">TỔNG TRỊ GIÁ TỒN KHO</string>
+    <string name="dashboard_overview_title">TỔNG QUAN KHO HÀNG</string>
+    <string name="section_recent_products">SẢN PHẨM GẦN ĐÂY</string>
+    <string name="btn_view_all">Xem tất cả</string>
+    <string name="dashboard_empty_title">Không có sản phẩm nào</string>
+    <string name="dashboard_empty_subtitle">Thêm sản phẩm để bắt đầu quản lý kho hàng</string>
+    <string name="section_low_stock_warning">CẢNH BÁO TỒN KHO THẤP</string>
+
+    <!-- Stats -->
+    <string name="stat_products">Sản phẩm</string>
+    <string name="stat_folders">Thư mục</string>
+    <string name="stat_total_qty">Tổng SL</string>
+    <string name="stat_total_value">Trị giá</string>
+
+    <!-- Items List -->
+    <string name="section_product_list">DANH SÁCH (%d)</string>
+    <string name="filter_active_label">Đang lọc</string>
+    <string name="filter_inactive_label">Bộ lọc</string>
+    <string name="empty_products_title">Không tìm thấy sản phẩm nào</string>
+    <string name="empty_products_subtitle_filtered">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</string>
+    <string name="empty_products_subtitle">Chưa có sản phẩm nào trong kho</string>
+    <string name="btn_clear_filter">Xóa bộ lọc</string>
+
+    <!-- Search -->
+    <string name="search_suggestions_header">GỢI Ý TÌM KIẾM</string>
+    <string name="search_results_header">KẾT QUẢ TÌM KIẾM (%d)</string>
+    <string name="search_empty_title">Chưa có nội dung</string>
+    <string name="search_empty_subtitle">Nhập tên sản phẩm, mã hoặc danh mục hàng hóa vào ô tìm kiếm để tra cứu tồn kho.</string>
+    <string name="search_no_results_title">Không tìm thấy kết quả</string>
+    <string name="search_no_results_subtitle">Thử tìm kiếm với một từ khóa khác hoặc kiểm tra lại chính tả.</string>
+    <string name="search_placeholder">Tìm tên, mã hoặc danh mục…</string>
+
+    <!-- Notifications -->
+    <string name="notification_screen_title">Thông báo</string>
+    <string name="btn_clear_all">Xóa tất cả</string>
+    <string name="btn_mark_all_read">Đánh dấu tất cả đã đọc</string>
+    <string name="notifications_unread_summary">%1$d thông báo chưa đọc trong tổng số %2$d</string>
+    <string name="notifications_all_read">Tất cả thông báo đã được đọc</string>
+    <string name="notifications_empty_title">Bạn không có thông báo nào</string>
+    <string name="notifications_empty_subtitle">Các thông báo về kho hàng sẽ xuất hiện ở đây</string>
+    <string name="section_newest">MỚI NHẤT</string>
+    <string name="section_earlier">TRƯỚC ĐÓ</string>
+    <string name="notification_unread">Chưa đọc</string>
+
+    <!-- Product Detail -->
+    <string name="product_not_found">Không tìm thấy sản phẩm!</string>
+    <string name="product_code_label">Mã sản phẩm: %s</string>
+    <string name="section_stock_adjustment">ĐIỀU CHỈNH TỒN KHO</string>
+    <string name="stock_unit_in_stock">chiếc trong kho</string>
+    <string name="low_stock_alert">Cảnh báo: Hàng tồn kho sắp hết!</string>
+    <string name="section_product_details">THÔNG TIN CHI TIẾT</string>
+    <string name="detail_unit_price">Đơn giá</string>
+    <string name="detail_sku_code">Mã SKU</string>
+    <string name="detail_category">Thư mục/Phân loại</string>
+    <string name="detail_total_value">Tổng giá trị</string>
+    <string name="section_product_description">MÔ TẢ SẢN PHẨM</string>
+    <string name="no_description">Không có mô tả chi tiết cho sản phẩm này.</string>
+    <string name="btn_delete_product">Xóa sản phẩm</string>
+    <string name="btn_edit_product">Chỉnh sửa sản phẩm</string>
+    <string name="dialog_delete_title">Xóa sản phẩm?</string>
+    <string name="dialog_delete_message">Bạn có chắc chắn muốn xóa sản phẩm \'%1$s\' (Mã: %2$s) khỏi kho hàng? Hành động này không thể hoàn tác.</string>
+    <string name="dialog_delete_confirm">Xóa bỏ</string>
+    <string name="dialog_delete_cancel">Quay lại</string>
+
+    <!-- Add/Edit Product -->
+    <string name="title_edit_product">Sửa sản phẩm</string>
+    <string name="title_add_product">Thêm sản phẩm</string>
+    <string name="error_empty_name">Vui lòng nhập tên sản phẩm!</string>
+    <string name="error_empty_code">Vui lòng nhập mã sản phẩm!</string>
+    <string name="section_product_images">HÌNH ẢNH SẢN PHẨM</string>
+    <string name="image_slot_label">Hình ảnh %1$d</string>
+    <string name="section_product_info">THÔNG TIN HÀNG HÓA</string>
+    <string name="field_product_name">Tên sản phẩm *</string>
+    <string name="field_product_name_placeholder">Nhập tên sản phẩm (ví dụ: Áo thun Polo)</string>
+    <string name="field_product_code">Mã sản phẩm *</string>
+    <string name="field_product_code_placeholder">Mã SKU (ví dụ: TH363636)</string>
+    <string name="field_category">Danh mục / Thư mục *</string>
+    <string name="field_quantity">Số lượng tồn kho *</string>
+    <string name="field_unit_price">Đơn giá (₫) *</string>
+    <string name="field_description">Mô tả sản phẩm</string>
+    <string name="field_description_placeholder">Nhập thông tin mô tả chi tiết, khu vực lưu trữ…</string>
+    <string name="total_product_value_title">TỔNG TRỊ GIÁ SẢN PHẨM</string>
+    <string name="total_product_value_formula">Công thức: Số lượng x Đơn giá</string>
+    <string name="dialog_validation_title">Lỗi nhập liệu</string>
+    <string name="dialog_validation_confirm">Đồng ý</string>
+
+    <!-- Menu Sheet -->
+    <string name="menu_add_product">Thêm sản phẩm</string>
+    <string name="menu_search_product">Tìm kiếm sản phẩm</string>
+    <string name="menu_clear_notifications">Xóa thông báo</string>
+    <string name="menu_add_random">Thêm mẫu ngẫu nhiên</string>
+    <string name="menu_dark_mode_off">Chế độ sáng</string>
+    <string name="menu_dark_mode_on">Chế độ tối</string>
+    <string name="menu_theme_system">Giao diện</string>
+    <string name="menu_light">Sáng</string>
+    <string name="menu_dark">Tối</string>
+
+    <!-- Product List Item / Recent Card -->
+    <string name="product_code_label_format">Mã: %s</string>
+    <string name="product_code_short_label">Mã: %s…</string>
+    <string name="product_qty_unit">%d cái</string>
+    <string name="badge_low_stock">Sắp hết</string>
+    <string name="product_total_value_label">Trị giá: %s</string>
+    <string name="low_stock_warning_message">%1$s (Mã: %2$s) sắp hết hàng!</string>
+
+    <!-- Filter Sheet -->
+    <string name="filter_sheet_title">Bộ lọc &amp; sắp xếp nâng cao</string>
+    <string name="filter_stock_status">Trạng thái tồn kho</string>
+    <string name="filter_low_stock">Sắp hết ≤ %1$d</string>
+    <string name="filter_high_stock">Tồn nhiều ≥ %1$d</string>
+    <string name="filter_price_range">Khoảng giá sản phẩm</string>
+    <string name="filter_price_from">Giá từ</string>
+    <string name="filter_price_to">Giá đến</string>
+    <string name="filter_placeholder_zero">0</string>
+    <string name="filter_placeholder_unlimited">Không giới hạn</string>
+    <string name="filter_qty_range">Khoảng số lượng tồn kho</string>
+    <string name="filter_qty_from">Số lượng từ</string>
+    <string name="filter_qty_to">Số lượng đến</string>
+    <string name="filter_sort_by_name">Sắp xếp theo tên</string>
+    <string name="filter_sort_name_asc">Tên A → Z</string>
+    <string name="filter_sort_name_desc">Tên Z → A</string>
+    <string name="filter_sort_by_price">Sắp xếp theo giá</string>
+    <string name="filter_sort_price_asc">Giá thấp → cao</string>
+    <string name="filter_sort_price_desc">Giá cao → thấp</string>
+    <string name="filter_sort_by_qty">Sắp xếp theo số lượng</string>
+    <string name="filter_sort_qty_asc">Ít → nhiều</string>
+    <string name="filter_sort_qty_desc">Nhiều → ít</string>
+    <string name="btn_apply_filter">Áp dụng</string>
+
+    <!-- Filter Validation Errors -->
+    <string name="error_price_min_negative">Giá tối thiểu không được nhỏ hơn 0.</string>
+    <string name="error_price_max_negative">Giá tối đa không được nhỏ hơn 0.</string>
+    <string name="error_price_range_invalid">Giá từ không được lớn hơn giá đến.</string>
+    <string name="error_qty_min_negative">Số lượng tối thiểu không hợp lệ.</string>
+    <string name="error_qty_max_negative">Số lượng tối đa không hợp lệ.</string>
+    <string name="error_qty_range_invalid">Số lượng từ không được lớn hơn số lượng đến.</string>
+
+    <!-- Notification Messages (ViewModel) -->
+    <string name="notification_title_system_init">Hệ thống khởi tạo</string>
+    <string name="notification_msg_system_init">Đã nạp thành công dữ liệu mẫu của kho hàng.</string>
+    <string name="notification_title_low_stock">Cảnh báo tồn kho thấp</string>
+    <string name="notification_msg_sample_low_stock">Sản phẩm \'Tai Nghe Bluetooth Pro\' (TN991823) chỉ còn 8 chiếc trong kho!</string>
+    <string name="notification_title_add_product">Thêm sản phẩm mới</string>
+    <string name="notification_msg_add_product">Đã thêm \'%1$s\' (Mã: %2$s) vào kho hàng thành công.</string>
+    <string name="notification_msg_new_low_stock">Sản phẩm mới thêm \'%1$s\' có số lượng tồn kho thấp: %2$d sản phẩm.</string>
+    <string name="notification_title_update_product">Cập nhật sản phẩm</string>
+    <string name="notification_msg_update_product">Đã cập nhật thông tin sản phẩm \'%1$s\' (Mã: %2$s).</string>
+    <string name="notification_msg_update_low_stock">Sản phẩm \'%1$s\' hiện chỉ còn lại %2$d sản phẩm.</string>
+    <string name="notification_title_delete_product">Xóa sản phẩm</string>
+    <string name="notification_msg_delete_product">Đã xóa sản phẩm \'%1$s\' (Mã: %2$s) khỏi kho hàng.</string>
+    <string name="notification_title_adjust_stock">Điều chỉnh tồn kho</string>
+    <string name="notification_msg_adjust_stock">%1$s số lượng \'%2$s\' từ %3$d -> %4$d chiếc.</string>
+    <string name="notification_msg_adjust_low_stock">Số lượng \'%1$s\' giảm mạnh xuống mức cảnh báo: %2$d sản phẩm.</string>
+    <string name="stock_action_increase">Tăng</string>
+    <string name="stock_action_decrease">Giảm</string>
+
+    <!-- Random Product -->
+    <string name="random_product_name">Sản phẩm ngẫu nhiên X</string>
+    <string name="random_product_desc">Sản phẩm tạo tự động nhằm kiểm tra chức năng phản hồi dữ liệu trong thời gian thực.</string>
 </resources>
