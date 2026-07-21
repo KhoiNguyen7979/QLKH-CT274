@@ -138,8 +138,7 @@ fun NotificationsScreen(
                             }
                         ) {
                             NotificationItemRow(notification) {
-                                if (!notification.isRead)
-                                    onNotificationClick(notification)
+                                onNotificationClick(notification)
                             }
                         }
                     }
@@ -163,8 +162,7 @@ fun NotificationsScreen(
                             }
                         ) {
                             NotificationItemRow(notification) {
-                                if (!notification.isRead)
-                                    onNotificationClick(notification)
+                                onNotificationClick(notification)
                             }
                         }
                     }

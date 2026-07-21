@@ -16,6 +16,10 @@ import com.example.ui.screens.LOW_STOCK_THRESHOLD
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+sealed class UiEvent {
+    data class ShowSnackbar(val message: String) : UiEvent()
+}
+
 class ProductViewModel(
     application: Application,
     private val repository: ProductRepository
@@ -28,6 +32,9 @@ class ProductViewModel(
 
     private val _currentTab = MutableStateFlow(0)
     val currentTab: StateFlow<Int> = _currentTab.asStateFlow()
+
+    private val _uiEvents = MutableSharedFlow<UiEvent>(extraBufferCapacity = 1)
+    val uiEvents: SharedFlow<UiEvent> = _uiEvents.asSharedFlow()
 
     private val _themeMode = MutableStateFlow(prefs.getInt("theme_mode", 0))
     val themeMode: StateFlow<Int> = _themeMode.asStateFlow()
@@ -170,6 +177,7 @@ class ProductViewModel(
                     type = "success"
                 )
             )
+            _uiEvents.tryEmit(UiEvent.ShowSnackbar(getString(R.string.snackbar_product_added)))
             if (quantity <= LOW_STOCK_THRESHOLD) {
                 insertNotificationSafe(
                     WarehouseNotification(
@@ -207,6 +215,7 @@ class ProductViewModel(
                         type = "info"
                     )
                 )
+                _uiEvents.tryEmit(UiEvent.ShowSnackbar(getString(R.string.snackbar_product_updated)))
             }
             if (quantityChanged &&
                 product.quantity <= LOW_STOCK_THRESHOLD &&
@@ -241,6 +250,7 @@ class ProductViewModel(
                     type = "warning"
                 )
             )
+            _uiEvents.tryEmit(UiEvent.ShowSnackbar(getString(R.string.snackbar_product_deleted)))
         }
     }
 

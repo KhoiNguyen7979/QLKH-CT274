@@ -2,7 +2,14 @@ package com.example.ui.navigation
 
 import android.app.Application
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -11,8 +18,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ui.ProductViewModel
+import com.example.ui.UiEvent
 import com.example.ui.screens.*
 import com.example.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun WarehouseNavigation() {
@@ -35,102 +44,146 @@ fun WarehouseNavigation() {
         else -> isSystemDark
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvents.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+    }
+
     MyApplicationTheme(darkTheme = isDarkMode) {
-        NavHost(
-            navController = navController,
-            startDestination = "main"
-        ) {
-            composable("main") {
-                MainTabsContainer(
-                    viewModel = viewModel,
-                    onProductClick = { product ->
-                        navController.navigate("detail/${product.id}")
-                    },
-                    onEditProduct = { product ->
-                        navController.navigate("add_edit?productId=${product.id}")
-                    },
-                    onAddProductClick = {
-                        navController.navigate("add_edit")
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { innerPadding ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavHost(
+                    navController = navController,
+                    startDestination = "main"
+                ) {
+                    composable("main") {
+                        MainTabsContainer(
+                            viewModel = viewModel,
+                            onProductClick = { product ->
+                                navController.navigate("detail/${product.id}")
+                            },
+                            onEditProduct = { product ->
+                                navController.navigate("add_edit?productId=${product.id}")
+                            },
+                            onAddProductClick = {
+                                navController.navigate("add_edit")
+                            },
+                            onNotificationClick = { notification ->
+                                navController.navigate("notification_detail/${notification.id}")
+                            }
+                        )
                     }
-                )
-            }
 
-            composable(
-                route = "detail/{productId}",
-                arguments = listOf(navArgument("productId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val productId = backStackEntry.arguments?.getInt("productId") ?: 0
-                val products by viewModel.products.collectAsState()
-                val product = products.find { it.id == productId }
-                LaunchedEffect(Unit) { product?.let { viewModel.setStockAdjustOrigin(it) } }
+                    composable(
+                        route = "notification_detail/{notificationId}",
+                        arguments = listOf(
+                            navArgument("notificationId") { type = NavType.IntType }
+                        )
+                    ) { backStackEntry ->
+                        val notificationId = backStackEntry.arguments?.getInt("notificationId") ?: 0
+                        val notifications by viewModel.notifications.collectAsState()
+                        val notification = notifications.find { it.id == notificationId }
 
-                ProductDetailScreen(
-                    product = product,
-                    onBackClick = {
-                        product?.let { viewModel.flushStockAdjustNotification(it) }
-                        navController.popBackStack()
-                    },
-                    onEditClick = {
-                        navController.navigate("add_edit?productId=$productId")
-                    },
-                    onDeleteClick = {
-                        if (product != null) {
-                            viewModel.deleteProduct(product)
+                        LaunchedEffect(notificationId) {
+                            viewModel.markNotificationAsRead(notificationId)
                         }
-                        navController.popBackStack()
-                    },
-                    onAdjustStock = { amount ->
-                        product?.let { viewModel.adjustStock(it, amount) }
-                    }
-                )
-            }
 
-            composable(
-                route = "add_edit?productId={productId}",
-                arguments = listOf(
-                    navArgument("productId") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
+                        NotificationDetailScreen(
+                            notification = notification,
+                            onBackClick = { navController.popBackStack() }
+                        )
                     }
-                )
-            ) { backStackEntry ->
-                val productIdStr = backStackEntry.arguments?.getString("productId")
-                val productId = productIdStr?.toIntOrNull()
 
-                val products by viewModel.products.collectAsState()
-                val productToEdit = if (productId != null) products.find { it.id == productId } else null
+                    composable(
+                        route = "detail/{productId}",
+                        arguments = listOf(navArgument("productId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val productId = backStackEntry.arguments?.getInt("productId") ?: 0
+                        val products by viewModel.products.collectAsState()
+                        val product = products.find { it.id == productId }
+                        LaunchedEffect(Unit) { product?.let { viewModel.setStockAdjustOrigin(it) } }
 
-                AddEditProductScreen(
-                    product = productToEdit,
-                    onBackClick = { navController.popBackStack() },
-                    onSubmit = { name, code, qty, price, category, desc, imageUrls ->
-                        if (productToEdit != null) {
-                            val updatedProduct = productToEdit.copy(
-                                name = name,
-                                code = code,
-                                quantity = qty,
-                                price = price,
-                                category = category,
-                                description = desc,
-                                imageUrls = imageUrls,
-                                lastUpdated = System.currentTimeMillis()
-                            )
-                            viewModel.updateProduct(updatedProduct)
-                        } else {
-                            viewModel.addProduct(
-                                name = name,
-                                code = code,
-                                quantity = qty,
-                                price = price,
-                                category = category,
-                                description = desc,
-                                imageUrls = imageUrls
-                            )
-                        }
-                        navController.popBackStack()
+                        ProductDetailScreen(
+                            product = product,
+                            onBackClick = {
+                                product?.let { viewModel.flushStockAdjustNotification(it) }
+                                navController.popBackStack()
+                            },
+                            onEditClick = {
+                                navController.navigate("add_edit?productId=$productId")
+                            },
+                            onDeleteClick = {
+                                if (product != null) {
+                                    viewModel.deleteProduct(product)
+                                }
+                                navController.popBackStack()
+                            },
+                            onAdjustStock = { amount ->
+                                product?.let { viewModel.adjustStock(it, amount) }
+                            }
+                        )
                     }
-                )
+
+                    composable(
+                        route = "add_edit?productId={productId}",
+                        arguments = listOf(
+                            navArgument("productId") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val productIdStr = backStackEntry.arguments?.getString("productId")
+                        val productId = productIdStr?.toIntOrNull()
+
+                        val products by viewModel.products.collectAsState()
+                        val productToEdit = if (productId != null) products.find { it.id == productId } else null
+
+                        AddEditProductScreen(
+                            product = productToEdit,
+                            onBackClick = { navController.popBackStack() },
+                            onSubmit = { name, code, qty, price, category, desc, imageUrls ->
+                                if (productToEdit != null) {
+                                    val updatedProduct = productToEdit.copy(
+                                        name = name,
+                                        code = code,
+                                        quantity = qty,
+                                        price = price,
+                                        category = category,
+                                        description = desc,
+                                        imageUrls = imageUrls,
+                                        lastUpdated = System.currentTimeMillis()
+                                    )
+                                    viewModel.updateProduct(updatedProduct)
+                                } else {
+                                    viewModel.addProduct(
+                                        name = name,
+                                        code = code,
+                                        quantity = qty,
+                                        price = price,
+                                        category = category,
+                                        description = desc,
+                                        imageUrls = imageUrls
+                                    )
+                                }
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                }
             }
         }
     }

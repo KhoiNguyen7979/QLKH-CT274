@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.R
 import com.example.data.Product
+import com.example.data.WarehouseNotification
 import com.example.ui.ProductViewModel
 import com.example.ui.components.*
 
@@ -22,7 +23,8 @@ fun MainTabsContainer(
     viewModel: ProductViewModel,
     onProductClick: (Product) -> Unit,
     onEditProduct: (Product) -> Unit,
-    onAddProductClick: () -> Unit
+    onAddProductClick: () -> Unit,
+    onNotificationClick: (WarehouseNotification) -> Unit
 ) {
     val currentTab by viewModel.currentTab.collectAsState()
     val products by viewModel.products.collectAsState()
@@ -97,9 +99,7 @@ fun MainTabsContainer(
                     onNotificationDismissed = { notification ->
                         viewModel.deleteNotification(notification)
                     },
-                    onNotificationClick = { notification ->
-                        viewModel.markNotificationAsRead(notification.id)
-                    }
+                    onNotificationClick = onNotificationClick
                 )
                 3 -> SearchScreen(
                     filteredProducts = filteredProducts,

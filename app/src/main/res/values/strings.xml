@@ -72,6 +72,19 @@
     <string name="section_newest">MỚI NHẤT</string>
     <string name="section_earlier">TRƯỚC ĐÓ</string>
     <string name="notification_unread">Chưa đọc</string>
+    <string name="notification_detail_title">Chi tiết thông báo</string>
+    <string name="notification_detail_not_found">Không tìm thấy thông báo</string>
+    <string name="notification_detail_section_info">THÔNG TIN</string>
+    <string name="notification_detail_section_content">NỘI DUNG</string>
+    <string name="notification_detail_time">Thời gian</string>
+    <string name="notification_detail_date">Ngày tạo</string>
+    <string name="notification_detail_type">Loại thông báo</string>
+    <string name="notification_detail_status">Trạng thái</string>
+    <string name="notification_detail_status_read">Đã đọc</string>
+    <string name="notification_detail_status_unread">Chưa đọc</string>
+    <string name="notification_type_success">Thành công</string>
+    <string name="notification_type_warning">Cảnh báo</string>
+    <string name="notification_type_info">Thông tin</string>
 
     <!-- Product Detail -->
     <string name="product_not_found">Không tìm thấy sản phẩm!</string>
@@ -114,6 +127,11 @@
     <string name="total_product_value_formula">Công thức: Số lượng x Đơn giá</string>
     <string name="dialog_validation_title">Lỗi nhập liệu</string>
     <string name="dialog_validation_confirm">Đồng ý</string>
+    <string name="btn_save_product">Lưu sản phẩm</string>
+    <string name="btn_add_product">Thêm sản phẩm</string>
+    <string name="snackbar_product_added">Thêm sản phẩm thành công</string>
+    <string name="snackbar_product_updated">Cập nhật sản phẩm thành công</string>
+    <string name="snackbar_product_deleted">Xóa sản phẩm thành công</string>
 
     <!-- Menu Sheet -->
     <string name="menu_add_product">Thêm sản phẩm</string>
