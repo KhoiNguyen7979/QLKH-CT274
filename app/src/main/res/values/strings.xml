@@ -107,7 +107,7 @@
     <string name="dialog_delete_cancel">Quay lại</string>
 
     <!-- Add/Edit Product -->
-    <string name="title_edit_product">Sửa sản phẩm</string>
+    <string name="title_edit_product">Chỉnh sửa sản phẩm</string>
     <string name="title_add_product">Thêm sản phẩm</string>
     <string name="error_empty_name">Vui lòng nhập tên sản phẩm!</string>
     <string name="error_empty_code">Vui lòng nhập mã sản phẩm!</string>
@@ -137,10 +137,10 @@
     <string name="menu_add_product">Thêm sản phẩm</string>
     <string name="menu_search_product">Tìm kiếm sản phẩm</string>
     <string name="menu_clear_notifications">Xóa thông báo</string>
-    <string name="menu_add_random">Thêm mẫu ngẫu nhiên</string>
+    <string name="menu_add_random">Thêm sản phẩm ngẫu nhiên</string>
     <string name="menu_dark_mode_off">Chế độ sáng</string>
     <string name="menu_dark_mode_on">Chế độ tối</string>
-    <string name="menu_theme_system">Giao diện</string>
+    <string name="menu_theme_system">Hệ thống</string>
     <string name="menu_light">Sáng</string>
     <string name="menu_dark">Tối</string>
 
