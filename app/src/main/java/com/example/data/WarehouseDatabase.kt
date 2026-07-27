@@ -8,6 +8,12 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/**
+ * Room Database singleton cho ứng dụng quản lý kho hàng.
+ * Chứa 2 bảng: products (sản phẩm) và warehouse_notifications (thông báo).
+ * Version 4 - có migration từ version 3.
+ * Sử dụng Singleton pattern để đảm bảo chỉ có 1 instance database.
+ */
 @Database(entities = [Product::class, WarehouseNotification::class], version = 4, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class WarehouseDatabase : RoomDatabase() {
@@ -18,6 +24,7 @@ abstract class WarehouseDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: WarehouseDatabase? = null
 
+        /** Migration từ version 3 sang 4: tạo bảng notification_dao */
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -36,6 +43,7 @@ abstract class WarehouseDatabase : RoomDatabase() {
             }
         }
 
+        /** Tạo hoặc trả về instance database singleton */
         fun getDatabase(context: Context): WarehouseDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(

@@ -17,6 +17,14 @@ import com.example.data.Product
 import com.example.ui.components.*
 import com.example.ui.theme.*
 
+/**
+ * Màn hình Tìm kiếm (Tab 3).
+ * Cho phép tìm kiếm sản phẩm theo tên, mã, danh mục.
+ * Hiển thị:
+ * 1. Thanh tìm kiếm
+ * 2. Kết quả tìm kiếm (danh sách sản phẩm)
+ * 3. Empty state khi không có kết quả
+ */
 @Composable
 fun SearchScreen(
     filteredProducts: List<Product>,
@@ -30,12 +38,14 @@ fun SearchScreen(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // Thanh tìm kiếm
         WarehouseSearchBar(
             query = searchQuery,
             onQueryChange = onSearchQueryChange,
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         )
 
+        // Tiêu đề section: "Gợi ý tìm kiếm" hoặc "Kết quả tìm kiếm (X)"
         SectionHeader(
             title = if (searchQuery.isEmpty())
                 stringResource(R.string.search_suggestions_header)
@@ -48,18 +58,21 @@ fun SearchScreen(
         )
 
         if (searchQuery.isEmpty()) {
+            // Chưa nhập gì → hiển thị empty state với gợi ý
             EmptyState(
                 icon = Icons.Rounded.Search,
                 title = stringResource(R.string.search_empty_title),
                 subtitle = stringResource(R.string.search_empty_subtitle)
             )
         } else if (filteredProducts.isEmpty()) {
+            // Nhập rồi mà 0 kết quả
             EmptyState(
                 icon = Icons.Rounded.SearchOff,
                 title = stringResource(R.string.search_no_results_title),
                 subtitle = stringResource(R.string.search_no_results_subtitle)
             )
         } else {
+            // Hiển thị danh sách kết quả tìm kiếm
             LazyColumn(
                 contentPadding = PaddingValues(
                     horizontal = 16.dp, vertical = 8.dp
@@ -76,7 +89,7 @@ fun SearchScreen(
                         }
                     )
                 }
-                item { Spacer(modifier = Modifier.height(100.dp)) }
+                item { Spacer(modifier = Modifier.height(100.dp)) }  // Padding cuối
             }
         }
     }

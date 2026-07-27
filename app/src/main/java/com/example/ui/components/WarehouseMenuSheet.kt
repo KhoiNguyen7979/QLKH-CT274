@@ -13,6 +13,16 @@ import androidx.compose.ui.unit.dp
 import com.example.R
 import kotlinx.coroutines.launch
 
+/**
+ * Sheet menu tùy chỉnh (overflow menu).
+ * Hiển thị khi nhấn nút ⋮ ở header.
+ * Chức năng:
+ * - Thêm sản phẩm
+ * - Tìm kiếm
+ * - Xóa tất cả thông báo
+ * - Thêm sản phẩm ngẫu nhiên
+ * - Chọn theme (System/Sáng/Tối)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WarehouseMenuSheet(
@@ -30,6 +40,10 @@ fun WarehouseMenuSheet(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
 
+    /**
+     * Helper: đóng sheet trước, rồi chạy action.
+     * Đảm bảo sheet dismiss animation hoàn thành trước khi navigate.
+     */
     fun dismissAndRun(action: () -> Unit) {
         scope.launch { sheetState.hide() }.invokeOnCompletion {
             if (!sheetState.isVisible) {
@@ -57,6 +71,7 @@ fun WarehouseMenuSheet(
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 32.dp)
         ) {
+            // Các nút chức năng
             WarehouseMenuButton(
                 text = stringResource(R.string.menu_add_product),
                 icon = Icons.Rounded.Add,
@@ -80,6 +95,7 @@ fun WarehouseMenuSheet(
 
             WarehouseDivider(modifier = Modifier.padding(vertical = 8.dp))
 
+            // Theme toggle: 3 FilterChips (System/Sáng/Tối)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

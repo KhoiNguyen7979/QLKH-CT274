@@ -23,11 +23,20 @@ import com.example.ui.theme.StockDanger
 import com.example.ui.theme.StockSafe
 import com.example.ui.theme.StockWarning
 
+/**
+ * Component hiển thị một thông báo trong danh sách.
+ * Cấu trúc:
+ * - Icon theo loại (success=green, warning=orange, info=blue)
+ * - Tiêu đề + message + thời gian
+ * - Badge dot đỏ nếu chưa đọc
+ * Click → navigate đến chi tiết thông báo.
+ */
 @Composable
 fun NotificationItemRow(
     notification: WarehouseNotification,
     onClick: () -> Unit
 ) {
+    // Xác định icon + màu theo loại thông báo
     val (icon, tintColor) = when (notification.type) {
         "success" -> Icons.Rounded.CheckCircle to StockSafe
         "warning" -> Icons.Rounded.Warning to StockWarning
@@ -43,6 +52,7 @@ fun NotificationItemRow(
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
         colors = CardDefaults.cardColors(
+            // Background khác nhau nếu đã/chưa đọc
             containerColor = if (notification.isRead) {
                 MaterialTheme.colorScheme.surface
             } else {
@@ -57,6 +67,7 @@ fun NotificationItemRow(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icon trong circle màu
             Box(
                 modifier = Modifier
                     .size(42.dp)
@@ -74,6 +85,7 @@ fun NotificationItemRow(
 
             Spacer(Modifier.width(12.dp))
 
+            // Nội dung thông báo
             Column(Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -85,6 +97,7 @@ fun NotificationItemRow(
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f)
                     )
+                    // Dot đỏ nếu chưa đọc
                     if (!notification.isRead) {
                         Spacer(Modifier.width(8.dp))
                         Box(
@@ -96,6 +109,7 @@ fun NotificationItemRow(
                     }
                 }
                 Spacer(Modifier.height(3.dp))
+                // Message (1-2 dòng)
                 Text(
                     notification.message,
                     style = MaterialTheme.typography.bodySmall,
@@ -103,6 +117,7 @@ fun NotificationItemRow(
                 )
                 Spacer(Modifier.height(5.dp))
 
+                // Thời gian (relative) + badge "Chưa đọc"
                 val relativeTime = DateUtils
                     .getRelativeTimeSpanString(
                         notification.timestamp,
@@ -140,6 +155,11 @@ fun NotificationItemRow(
     }
 }
 
+/**
+ * Component bọc NotificationItemRow với chức năng SwipeToDismiss.
+ * Vuốt trái/phải để xóa thông báo.
+ * Background hiển thị màu đỏ + icon delete khi vuốt.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeToDismissNotificationItem(
@@ -152,7 +172,7 @@ fun SwipeToDismissNotificationItem(
             if (value == SwipeToDismissBoxValue.EndToStart ||
                 value == SwipeToDismissBoxValue.StartToEnd
             ) {
-                onDismiss()
+                onDismiss()  // Xóa thông báo
                 true
             } else false
         }
@@ -161,6 +181,7 @@ fun SwipeToDismissNotificationItem(
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
+            // Background đỏ khi vuốt
             val backgroundColor by animateColorAsState(
                 targetValue = if (dismissState.targetValue ==
                     SwipeToDismissBoxValue.Settled
@@ -188,6 +209,7 @@ fun SwipeToDismissNotificationItem(
                     .padding(horizontal = 20.dp),
                 contentAlignment = alignment
             ) {
+                // Icon delete khi vuốt
                 if (dismissState.targetValue !=
                     SwipeToDismissBoxValue.Settled
                 ) {

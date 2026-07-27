@@ -6,6 +6,18 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+/**
+ * Typography tùy chỉnh cho ứng dụng.
+ * Sử dụng FontFamily.Default, tất cả TextStyle có letterSpacing = 0.sp (trừ body/label).
+ * Các level:
+ * - displayLarge: 32sp Bold (tiêu đề lớn)
+ * - headlineLarge: 24sp Bold (tiêu đề trang)
+ * - headlineSmall: 20sp Bold (tiêu đề section)
+ * - titleMedium: 16sp Bold (tiêu đề card)
+ * - titleSmall: 14sp SemiBold
+ * - bodyLarge/Medium/Small: 14/13/12sp Normal (nội dung)
+ * - labelLarge/Medium/Small: 13/11/10sp SemiBold/Medium (nhãn, badge)
+ */
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,

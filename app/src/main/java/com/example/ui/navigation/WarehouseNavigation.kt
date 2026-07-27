@@ -23,29 +23,41 @@ import com.example.ui.screens.*
 import com.example.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * Component Navigation chính của ứng dụng.
+ * Thiết lập:
+ * 1. NavController để quản lý điều hướng giữa các màn hình
+ * 2. ProductViewModel (shared) để quản lý trạng thái toàn cục
+ * 3. Theme (light/dark) dựa trên themeMode từ SharedPreferences
+ * 4. SnackbarHost để hiển thị thông báo dạng snackbar
+ * 5. NavHost với 4 routes chính
+ */
 @Composable
 fun WarehouseNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val application = context.applicationContext as Application
 
+    // Tạo ViewModel shared (tồn tại xuyên suốt vòng đời Navigation)
     val viewModel: ProductViewModel = viewModel(
         factory = ProductViewModel.Factory(application)
     )
 
     val themeMode by viewModel.themeMode.collectAsState()
 
+    // Xác định dark mode: 0=system, 1=light, 2=dark
     val isSystemDark = (context.resources.configuration.uiMode
         and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
     val isDarkMode = when (themeMode) {
-        1 -> false
-        2 -> true
-        else -> isSystemDark
+        1 -> false  // Luôn light
+        2 -> true   // Luôn dark
+        else -> isSystemDark  // Theo hệ thống
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Collect UI events (snackbar) từ ViewModel và hiển thị
     LaunchedEffect(Unit) {
         viewModel.uiEvents.collectLatest { event ->
             when (event) {
@@ -59,15 +71,18 @@ fun WarehouseNavigation() {
         }
     }
 
+    // Áp dụng theme và Scaffold với snackbar host
     MyApplicationTheme(darkTheme = isDarkMode) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize()) {
+                // NavHost định nghĩa tất cả các routes và screen tương ứng
                 NavHost(
                     navController = navController,
-                    startDestination = "main"
+                    startDestination = "main"  // Màn hình mặc định khi mở app
                 ) {
+                    // ========== ROUTE: MÀN HÌNH CHÍNH (Tab Container) ==========
                     composable("main") {
                         MainTabsContainer(
                             viewModel = viewModel,
@@ -86,6 +101,8 @@ fun WarehouseNavigation() {
                         )
                     }
 
+                    // ========== ROUTE: CHI TIẾT THÔNG BÁO ==========
+                    // Truyền notificationId qua argument
                     composable(
                         route = "notification_detail/{notificationId}",
                         arguments = listOf(
@@ -96,6 +113,7 @@ fun WarehouseNavigation() {
                         val notifications by viewModel.notifications.collectAsState()
                         val notification = notifications.find { it.id == notificationId }
 
+                        // Tự động đánh dấu đã đọc khi mở chi tiết
                         LaunchedEffect(notificationId) {
                             viewModel.markNotificationAsRead(notificationId)
                         }
@@ -106,6 +124,8 @@ fun WarehouseNavigation() {
                         )
                     }
 
+                    // ========== ROUTE: CHI TIẾT SẢN PHẨM ==========
+                    // Truyền productId qua argument
                     composable(
                         route = "detail/{productId}",
                         arguments = listOf(navArgument("productId") { type = NavType.IntType })
@@ -113,11 +133,13 @@ fun WarehouseNavigation() {
                         val productId = backStackEntry.arguments?.getInt("productId") ?: 0
                         val products by viewModel.products.collectAsState()
                         val product = products.find { it.id == productId }
+                        // Ghi nhận số lượng ban đầu khi vào màn (để flush notification khi rời đi)
                         LaunchedEffect(Unit) { product?.let { viewModel.setStockAdjustOrigin(it) } }
 
                         ProductDetailScreen(
                             product = product,
                             onBackClick = {
+                                // Khi nhấn back → flush notification thay đổi tồn kho
                                 product?.let { viewModel.flushStockAdjustNotification(it) }
                                 navController.popBackStack()
                             },
@@ -136,6 +158,8 @@ fun WarehouseNavigation() {
                         )
                     }
 
+                    // ========== ROUTE: THÊM / CHỈNH SỬA SẢN PHẨM ==========
+                    // productId nullable: có = edit mode, null = add mode
                     composable(
                         route = "add_edit?productId={productId}",
                         arguments = listOf(
@@ -157,6 +181,7 @@ fun WarehouseNavigation() {
                             onBackClick = { navController.popBackStack() },
                             onSubmit = { name, code, qty, price, category, desc, imageUrls ->
                                 if (productToEdit != null) {
+                                    // Chế độ chỉnh sửa: tạo bản sao với thông tin mới
                                     val updatedProduct = productToEdit.copy(
                                         name = name,
                                         code = code,
@@ -169,6 +194,7 @@ fun WarehouseNavigation() {
                                     )
                                     viewModel.updateProduct(updatedProduct)
                                 } else {
+                                    // Chế độ thêm mới
                                     viewModel.addProduct(
                                         name = name,
                                         code = code,

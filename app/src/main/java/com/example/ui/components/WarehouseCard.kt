@@ -7,10 +7,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Card wrapper tùy chỉnh.
+ * - shape: medium (12dp corners)
+ * - elevation: 1dp
+ * - Optional onClick: nếu có thì card có thể click được
+ * Dùng để bọc nội dung trong các màn hình khác nhau.
+ */
 @Composable
 fun WarehouseCard(
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,  // Optional: card có thể click được
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(

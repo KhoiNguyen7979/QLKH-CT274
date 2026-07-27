@@ -31,6 +31,14 @@ import androidx.compose.ui.unit.dp
 import com.example.R
 import com.example.ui.theme.StockDanger
 
+/**
+ * Data class định nghĩa một mục trong bottom navigation bar.
+ * - index: vị trí tab
+ * - labelResId: resource ID cho label
+ * - selectedIcon: icon khi tab được chọn
+ * - unselectedIcon: icon khi tab chưa chọn
+ * - showBadge: có hiển thị badge (số thông báo chưa đọc) hay không
+ */
 data class BottomNavItem(
     val index: Int,
     val labelResId: Int,
@@ -39,6 +47,7 @@ data class BottomNavItem(
     val showBadge: Boolean = false
 )
 
+/** Danh sách 4 tab trong bottom navigation */
 private val bottomNavItems = listOf(
     BottomNavItem(
         0, R.string.tab_dashboard,
@@ -52,7 +61,7 @@ private val bottomNavItems = listOf(
         2, R.string.tab_notifications,
         Icons.Rounded.NotificationsActive,
         Icons.Rounded.Notifications,
-        showBadge = true
+        showBadge = true  // Tab thông báo có badge
     ),
     BottomNavItem(
         3, R.string.tab_search,
@@ -60,6 +69,12 @@ private val bottomNavItems = listOf(
     )
 )
 
+/**
+ * Bottom Navigation Bar tùy chỉnh.
+ * Hiển thị 4 tab với icon + label.
+ * Tab Notifications hiển thị badge số thông báo chưa đọc.
+ * Tab được chọn có background highlight.
+ */
 @Composable
 fun WarehouseBottomBar(
     currentTab: Int,
@@ -68,7 +83,7 @@ fun WarehouseBottomBar(
 ) {
     Surface(
         tonalElevation = 3.dp,
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)  // Tuân thủ navigation bar
     ) {
         Row(
             modifier = Modifier
@@ -81,6 +96,7 @@ fun WarehouseBottomBar(
                 val label = stringResource(item.labelResId)
                 val isSelected = currentTab == item.index
 
+                // Màu icon/text: primary nếu chọn, onSurfaceVariant nếu không
                 val iconColor = if (isSelected)
                     MaterialTheme.colorScheme.primary
                 else
@@ -91,6 +107,7 @@ fun WarehouseBottomBar(
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant
 
+                // Icon thay đổi theo trạng thái chọn
                 val icon = if (isSelected) item.selectedIcon else item.unselectedIcon
 
                 Box(
@@ -98,6 +115,7 @@ fun WarehouseBottomBar(
                         .weight(1f)
                         .clip(RoundedCornerShape(16.dp))
                         .then(
+                            // Background highlight khi tab được chọn
                             if (isSelected)
                                 Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                             else
@@ -107,13 +125,14 @@ fun WarehouseBottomBar(
                         .padding(vertical = 6.dp, horizontal = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Hiển thị badge nếu có thông báo chưa đọc
                     if (item.showBadge && unreadNotificationCount > 0) {
                         BadgedBox(
                             badge = {
                                 Badge(containerColor = StockDanger) {
                                     Text(
                                         text = if (unreadNotificationCount > 99)
-                                            "99+"
+                                            "99+"  // Giới hạn hiển thị
                                         else
                                             unreadNotificationCount.toString(),
                                         color = MaterialTheme.colorScheme.onError
@@ -136,6 +155,7 @@ fun WarehouseBottomBar(
                             }
                         }
                     } else {
+                        // Không có badge
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = icon,

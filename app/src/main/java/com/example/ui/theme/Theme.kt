@@ -11,6 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * Color Scheme cho Light theme.
+ * Primary: WarehouseBlue, Error: StockDanger
+ */
 private val LightColorScheme = lightColorScheme(
     primary = WarehouseBlue,
     onPrimary = Color.White,
@@ -48,6 +52,10 @@ private val LightColorScheme = lightColorScheme(
     surfaceContainerHighest = Color(0xFFE1E1E8)
 )
 
+/**
+ * Color Scheme cho Dark theme.
+ * Primary: blue nhạt hơn, surface tối.
+ */
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF2962A8),
     onPrimary = Color.White,
@@ -85,6 +93,12 @@ private val DarkColorScheme = darkColorScheme(
     surfaceContainerHighest = Color(0xFF33353E)
 )
 
+/**
+ * Theme function chính của ứng dụng.
+ * - Hỗ trợ Dynamic Color (Android 12+)
+ * - Tự động chuyển Light/Dark theo system setting
+ * - Áp dụng Typography, Shapes, ColorScheme
+ */
 @Composable
 fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

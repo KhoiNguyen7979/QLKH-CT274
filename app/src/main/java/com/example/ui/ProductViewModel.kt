@@ -16,49 +16,78 @@ import com.example.ui.screens.LOW_STOCK_THRESHOLD
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+/**
+ * sealed class định nghĩa các sự kiện UI một chiều (one-way events).
+ * Dùng để gửi thông báo từ ViewModel lên UI (ví dụ: hiển thị snackbar).
+ */
 sealed class UiEvent {
     data class ShowSnackbar(val message: String) : UiEvent()
 }
 
+/**
+ * ViewModel chính của ứng dụng, quản lý toàn bộ trạng thái và logic nghiệp vụ.
+ * Kế thừa AndroidViewModel để truy cập Application context (SharedPreferences, resources).
+ * Không sử dụng DI framework (Hilt/Dagger) mà tự tạo Factory thủ công.
+ */
 class ProductViewModel(
     application: Application,
     private val repository: ProductRepository
 ) : AndroidViewModel(application) {
 
+    /** SharedPreferences để lưu theme mode (0=system, 1=light, 2=dark) */
     private val prefs = application.getSharedPreferences("warehouse_prefs", 0)
 
+    /** Helper lấy string từ resources theo resId */
     private fun getString(resId: Int) = getApplication<Application>().getString(resId)
     private fun getString(resId: Int, vararg args: Any) = getApplication<Application>().getString(resId, *args)
 
+    // ==================== TRẠNG THÁI UI ====================
+
+    /** Tab hiện tại (0=Dashboard, 1=Inventory, 2=Notifications, 3=Search) */
     private val _currentTab = MutableStateFlow(0)
     val currentTab: StateFlow<Int> = _currentTab.asStateFlow()
 
+    /** Channel gửi UI events (snackbar) từ ViewModel lên UI */
     private val _uiEvents = MutableSharedFlow<UiEvent>(extraBufferCapacity = 1)
     val uiEvents: SharedFlow<UiEvent> = _uiEvents.asSharedFlow()
 
+    /** Chế độ theme (0=system, 1=light, 2=dark), lưu trong SharedPreferences */
     private val _themeMode = MutableStateFlow(prefs.getInt("theme_mode", 0))
     val themeMode: StateFlow<Int> = _themeMode.asStateFlow()
 
+    /** Đặt theme mode và lưu vào SharedPreferences */
     fun setThemeMode(mode: Int) {
         _themeMode.value = mode
         prefs.edit { putInt("theme_mode", mode) }
     }
 
+    /** Query tìm kiếm hiện tại */
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    /** Danh mục được chọn để lọc (mặc định: "Tất cả") */
     private val _selectedCategory = MutableStateFlow("Tất cả")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
+    // ==================== DỮ LIỆU TỪ DATABASE ====================
+
+    /** Flow danh sách tất cả sản phẩm từ Room DB */
     val products: StateFlow<List<Product>> = repository.allProducts
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
+    /** Flow danh sách tất cả thông báo từ Room DB */
     val notifications: StateFlow<List<WarehouseNotification>> = repository.allNotifications
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
+    /** Flow số lượng thông báo chưa đọc */
     val unreadNotificationCount: StateFlow<Int> = repository.unreadNotificationCount
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = 0)
 
+    /**
+     * Flow danh sách sản phẩm đã lọc (kết hợp search query + danh mục).
+     * Sử dụng combine() để tự động cập nhật khi searchQuery hoặc selectedCategory thay đổi.
+     * Lọc theo: tên chứa query, mã chứa query, hoặc danh mục chứa query.
+     */
     val filteredProducts: StateFlow<List<Product>> = combine(
         products, _searchQuery, _selectedCategory
     ) { productsList, query, category ->
@@ -72,7 +101,10 @@ class ProductViewModel(
         }
     }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
+    // ==================== KHỞI TẠO ====================
+
     init {
+        // Khi ViewModel khởi tạo, kiểm tra DB trống thì seed dữ liệu mẫu
         viewModelScope.launch {
             repository.allProducts.first().let { existingProducts ->
                 if (existingProducts.isEmpty()) seedSampleData()
@@ -80,10 +112,17 @@ class ProductViewModel(
         }
     }
 
+    /** Đặt tab hiện tại */
     fun setTab(index: Int) { _currentTab.value = index }
+    /** Đặt query tìm kiếm */
     fun setSearchQuery(query: String) { _searchQuery.value = query }
+    /** Đặt danh mục được chọn */
     fun setSelectedCategory(category: String) { _selectedCategory.value = category }
 
+    /**
+     * Tạo dữ liệu mẫu khi DB trống (lần chạy đầu tiên).
+     * Bao gồm 5 sản phẩm mẫu và 2 thông báo mẫu.
+     */
     private suspend fun seedSampleData() {
         val samples = listOf(
             Product(
@@ -134,6 +173,7 @@ class ProductViewModel(
         )
         samples.forEach { insertProductSafe(it) }
 
+        // Tạo thông báo mẫu: hệ thống khởi động
         insertNotificationSafe(
             WarehouseNotification(
                 title = getString(R.string.notification_title_system_init),
@@ -141,6 +181,7 @@ class ProductViewModel(
                 type = "success"
             )
         )
+        // Tạo thông báo mẫu: cảnh báo tồn kho thấp
         insertNotificationSafe(
             WarehouseNotification(
                 title = getString(R.string.notification_title_low_stock),
@@ -150,6 +191,13 @@ class ProductViewModel(
         )
     }
 
+    // ==================== CRUD SẢN PHẨM ====================
+
+    /**
+     * Thêm sản phẩm mới.
+     * Tạo notification "thêm thành công" + snackbar.
+     * Nếu số lượng ≤ 10 → thêm notification cảnh báo tồn kho thấp.
+     */
     fun addProduct(
         name: String,
         code: String,
@@ -170,6 +218,7 @@ class ProductViewModel(
                 imageUrls = imageUrls
             )
             insertProductSafe(product)
+            // Tạo thông báo thành công
             insertNotificationSafe(
                 WarehouseNotification(
                     title = getString(R.string.notification_title_add_product),
@@ -178,6 +227,7 @@ class ProductViewModel(
                 )
             )
             _uiEvents.tryEmit(UiEvent.ShowSnackbar(getString(R.string.snackbar_product_added)))
+            // Cảnh báo nếu tồn kho thấp
             if (quantity <= LOW_STOCK_THRESHOLD) {
                 insertNotificationSafe(
                     WarehouseNotification(
@@ -190,10 +240,16 @@ class ProductViewModel(
         }
     }
 
+    /**
+     * Cập nhật sản phẩm.
+     * So sánh field cũ vs mới → chỉ tạo notification nếu có thay đổi.
+     * Nếu số lượng rớt xuống ≤ 10 → thêm notification low-stock warning.
+     */
     fun updateProduct(product: Product) {
         viewModelScope.launch {
             val oldProduct = repository.allProducts.first().find { it.id == product.id }
             updateProductSafe(product)
+            // Kiểm tra từng field có thay đổi không
             val nameChanged = oldProduct != null && oldProduct.name != product.name
             val codeChanged = oldProduct != null && oldProduct.code != product.code
             val categoryChanged = oldProduct != null && oldProduct.category != product.category
@@ -201,6 +257,7 @@ class ProductViewModel(
             val priceChanged = oldProduct != null && oldProduct.price != product.price
             val imagesChanged = oldProduct != null && oldProduct.imageUrls != product.imageUrls
             val quantityChanged = oldProduct != null && oldProduct.quantity != product.quantity
+            // Chỉ thông báo nếu có thay đổi về thông tin (không tính số lượng)
             if (nameChanged || codeChanged || categoryChanged ||
                 descriptionChanged || priceChanged || imagesChanged
             ) {
@@ -217,6 +274,7 @@ class ProductViewModel(
                 )
                 _uiEvents.tryEmit(UiEvent.ShowSnackbar(getString(R.string.snackbar_product_updated)))
             }
+            // Cảnh báo low-stock nếu số lượng rớt xuống ≤ 10
             if (quantityChanged &&
                 product.quantity <= LOW_STOCK_THRESHOLD &&
                 oldProduct.quantity > LOW_STOCK_THRESHOLD
@@ -236,6 +294,10 @@ class ProductViewModel(
         }
     }
 
+    /**
+     * Xóa sản phẩm.
+     * Tạo notification "đã xóa" + hiển thị snackbar.
+     */
     fun deleteProduct(product: Product) {
         viewModelScope.launch {
             deleteProductSafe(product)
@@ -254,12 +316,24 @@ class ProductViewModel(
         }
     }
 
+    // ==================== ĐIỀU CHỈNH TỒN KHO ====================
+
+    /** Lưu số lượng ban đầu khi vào màn Detail (để so sánh khi rời đi) */
     private var stockAdjustOriginalQty: Int? = null
 
+    /**
+     * Đặt số lượng ban đầu khi người dùng vào màn chi tiết sản phẩm.
+     * Chỉ ghi nhận lần đầu tiên (nếu chưa có).
+     */
     fun setStockAdjustOrigin(product: Product) {
         if (stockAdjustOriginalQty == null) stockAdjustOriginalQty = product.quantity
     }
 
+    /**
+     * Điều chỉnh số lượng tồn kho (+/-).
+     * KHÔNG tạo notification ngay → chỉ flush khi rời màn Detail.
+     * Số lượng mới không được nhỏ hơn 0.
+     */
     fun adjustStock(product: Product, amount: Int) {
         viewModelScope.launch {
             val newQty = (product.quantity + amount).coerceAtLeast(0)
@@ -269,6 +343,11 @@ class ProductViewModel(
         }
     }
 
+    /**
+     * Tạo notification ghi nhận tổng thay đổi tồn kho khi rời màn Detail.
+     * So sánh số lượng hiện tại vs số lượng ban đầu (khi vào màn).
+     * Nếu rớt xuống ≤ 10 → thêm notification low-stock warning.
+     */
     fun flushStockAdjustNotification(product: Product) {
         val originalQty = stockAdjustOriginalQty ?: return
         stockAdjustOriginalQty = null
@@ -294,6 +373,7 @@ class ProductViewModel(
                     type = typeStr
                 )
             )
+            // Cảnh báo low-stock nếu rớt xuống ≤ 10
             if (currentQty <= LOW_STOCK_THRESHOLD && originalQty > LOW_STOCK_THRESHOLD) {
                 insertNotificationSafe(
                     WarehouseNotification(
@@ -310,25 +390,35 @@ class ProductViewModel(
         }
     }
 
+    // ==================== QUẢN LÝ THÔNG BÁO ====================
+
+    /** Đánh dấu thông báo đã đọc */
     fun markNotificationAsRead(notificationId: Int) {
         viewModelScope.launch { markNotificationAsReadSafe(notificationId) }
     }
 
+    /** Đánh dấu thông báo chưa đọc */
     fun markNotificationAsUnread(notificationId: Int) {
         viewModelScope.launch { markNotificationAsUnreadSafe(notificationId) }
     }
 
+    /** Đánh dấu tất cả thông báo đã đọc */
     fun markAllNotificationsAsRead() {
         viewModelScope.launch { markAllNotificationsAsReadSafe() }
     }
 
+    /** Xóa một thông báo */
     fun deleteNotification(notification: WarehouseNotification) {
         viewModelScope.launch { deleteNotificationSafe(notification) }
     }
 
+    /** Xóa tất cả thông báo */
     fun clearAllNotifications() {
         viewModelScope.launch { clearNotificationsSafe() }
     }
+
+    // ==================== HELPER FUNCTIONS (SAFE DB OPERATIONS) ====================
+    // Các hàm này bọc try-catch để tránh crash khi có lỗi DB
 
     private suspend fun insertProductSafe(product: Product) {
         try {
@@ -402,6 +492,10 @@ class ProductViewModel(
         }
     }
 
+    /**
+     * Factory để tạo ProductViewModel thủ công (không dùng DI).
+     * Tạo Database → Repository → ViewModel theo thứ tự.
+     */
     class Factory(private val application: Application) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ProductViewModel::class.java)) {

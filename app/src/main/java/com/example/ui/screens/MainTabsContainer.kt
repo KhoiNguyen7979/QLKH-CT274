@@ -18,6 +18,11 @@ import com.example.data.WarehouseNotification
 import com.example.ui.ProductViewModel
 import com.example.ui.components.*
 
+/**
+ * Container chính chứa 4 tab: Dashboard, Inventory, Notifications, Search.
+ * Scaffold với top bar (header) và bottom bar (navigation).
+ * Quản lý menu sheet (overflow menu) và chuyển tab.
+ */
 @Composable
 fun MainTabsContainer(
     viewModel: ProductViewModel,
@@ -26,6 +31,7 @@ fun MainTabsContainer(
     onAddProductClick: () -> Unit,
     onNotificationClick: (WarehouseNotification) -> Unit
 ) {
+    // Thu thập trạng thái từ ViewModel
     val currentTab by viewModel.currentTab.collectAsState()
     val products by viewModel.products.collectAsState()
     val filteredProducts by viewModel.filteredProducts.collectAsState()
@@ -35,6 +41,7 @@ fun MainTabsContainer(
     val unreadNotificationCount by viewModel.unreadNotificationCount.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
 
+    // Trạng thái hiển thị menu sheet
     var showMenu by remember { mutableStateOf(false) }
 
     val randomProductName = stringResource(R.string.random_product_name)
@@ -42,6 +49,7 @@ fun MainTabsContainer(
 
     Scaffold(
         topBar = {
+            // Xác định tiêu đề theo tab hiện tại
             val tabTitle = when (currentTab) {
                 0 -> stringResource(R.string.tab_dashboard)
                 1 -> stringResource(R.string.tab_inventory)
@@ -52,7 +60,7 @@ fun MainTabsContainer(
             WarehouseHeader(
                 title = tabTitle,
                 showActions = true,
-                onActionClick = { showMenu = true }
+                onActionClick = { showMenu = true }  // Mở menu sheet
             )
         },
         bottomBar = {
@@ -64,6 +72,7 @@ fun MainTabsContainer(
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            // Chuyển đổi nội dung theo tab hiện tại
             when (currentTab) {
                 0 -> DashboardScreen(
                     products = products,
@@ -115,15 +124,17 @@ fun MainTabsContainer(
                 )
             }
 
+            // Menu sheet (overflow menu) hiển thị đè lên nội dung
             WarehouseMenuSheet(
                 visible = showMenu,
                 onDismiss = { showMenu = false },
                 onAddProductClick = onAddProductClick,
-                onSearchItemsClick = { viewModel.setTab(3) },
+                onSearchItemsClick = { viewModel.setTab(3) },  // Chuyển sang tab Search
                 onClearNotificationsClick = {
                     viewModel.clearAllNotifications()
                 },
                 onAddRandomItemsClick = {
+                    // Thêm sản phẩm ngẫu nhiên với dữ liệu random
                     viewModel.addProduct(
                         name = randomProductName,
                         code = "RD" +

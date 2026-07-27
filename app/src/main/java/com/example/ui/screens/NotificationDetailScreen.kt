@@ -23,12 +23,21 @@ import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Màn hình Chi tiết Thông báo.
+ * Hiển thị đầy đủ thông tin một thông báo:
+ * 1. Icon theo loại (success/warning/info)
+ * 2. Tiêu đề + tags (loại, chưa đọc)
+ * 3. Thông tin chi tiết (thời gian, ngày, loại, trạng thái)
+ * 4. Nội dung thông báo
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationDetailScreen(
     notification: WarehouseNotification?,
     onBackClick: () -> Unit
 ) {
+    // Nếu null (không tìm thấy) → hiển thị lỗi
     if (notification == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -43,20 +52,21 @@ fun NotificationDetailScreen(
         return
     }
 
+    // Xác định icon + màu + label theo loại thông báo
     val (icon, tintColor, typeLabel) = when (notification.type) {
         "success" -> Triple(
             Icons.Rounded.CheckCircle,
-            StockSafe,
+            StockSafe,  // Màu xanh lá
             stringResource(R.string.notification_type_success)
         )
         "warning" -> Triple(
             Icons.Rounded.Warning,
-            StockWarning,
+            StockWarning,  // Màu cam
             stringResource(R.string.notification_type_warning)
         )
         "info" -> Triple(
             Icons.Rounded.Info,
-            CategoryFolders,
+            CategoryFolders,  // Màu xanh dương
             stringResource(R.string.notification_type_info)
         )
         else -> Triple(
@@ -66,6 +76,7 @@ fun NotificationDetailScreen(
         )
     }
 
+    // Định dạng thời gian
     val dateFormat = remember {
         SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     }
@@ -90,6 +101,7 @@ fun NotificationDetailScreen(
                     )
                 },
                 navigationIcon = {
+                    // Nút quay lại
                     Box(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -121,6 +133,7 @@ fun NotificationDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
+            // ========== ICON LỚN THEO LOẠI ==========
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,6 +156,7 @@ fun NotificationDetailScreen(
                 }
             }
 
+            // Tiêu đề thông báo
             Text(
                 text = notification.title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -154,6 +168,7 @@ fun NotificationDetailScreen(
 
             Spacer(Modifier.height(4.dp))
 
+            // Tags: loại thông báo + trạng thái chưa đọc
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -191,6 +206,7 @@ fun NotificationDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            // ========== CARD THÔNG TIN CHI TIẾT ==========
             WarehouseCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,6 +218,7 @@ fun NotificationDetailScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
+                    // Thời gian (relative: "5 phút trước", "2 giờ trước")
                     DetailSpecRow(
                         icon = Icons.Rounded.Schedule,
                         label = stringResource(R.string.notification_detail_time),
@@ -209,6 +226,7 @@ fun NotificationDetailScreen(
                     )
                     WarehouseDivider()
 
+                    // Ngày giờ chính xác
                     DetailSpecRow(
                         icon = Icons.Rounded.CalendarToday,
                         label = stringResource(R.string.notification_detail_date),
@@ -216,6 +234,7 @@ fun NotificationDetailScreen(
                     )
                     WarehouseDivider()
 
+                    // Loại thông báo
                     DetailSpecRow(
                         icon = when (notification.type) {
                             "success" -> Icons.Rounded.CheckCircle
@@ -228,6 +247,7 @@ fun NotificationDetailScreen(
                     )
                     WarehouseDivider()
 
+                    // Trạng thái đã/chưa đọc
                     DetailSpecRow(
                         icon = if (notification.isRead)
                             Icons.Rounded.MarkEmailRead
@@ -248,6 +268,7 @@ fun NotificationDetailScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // ========== CARD NỘI DUNG THÔNG BÁO ==========
             WarehouseCard(
                 modifier = Modifier
                     .fillMaxWidth()

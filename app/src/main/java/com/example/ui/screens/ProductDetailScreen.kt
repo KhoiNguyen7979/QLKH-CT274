@@ -28,6 +28,15 @@ import com.example.ui.theme.*
 import com.example.ui.utils.*
 import java.io.File
 
+/**
+ * Màn hình Chi tiết Sản phẩm.
+ * Hiển thị:
+ * 1. Ảnh sản phẩm (HorizontalPager, swipe ngang)
+ * 2. Điều chỉnh tồn kho (+1, -1, +10, -10)
+ * 3. Thông tin chi tiết (giá, mã SKU, danh mục, tổng GT)
+ * 4. Mô tả sản phẩm
+ * 5. Nút xóa sản phẩm
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -37,6 +46,7 @@ fun ProductDetailScreen(
     onDeleteClick: () -> Unit,
     onAdjustStock: (Int) -> Unit
 ) {
+    // Nếu product null (không tìm thấy) → hiển thị thông báo lỗi
     if (product == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -50,7 +60,7 @@ fun ProductDetailScreen(
         return
     }
 
-    val meta = CategoryRegistry.getMeta(product.category)
+    val meta = CategoryRegistry.getMeta(product.category)  // Lấy icon + color theo danh mục
     val scrollState = rememberScrollState()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -65,14 +75,13 @@ fun ProductDetailScreen(
                     )
                 },
                 navigationIcon = {
+                    // Nút quay lại (circle button)
                     Box(
                         modifier = Modifier
                             .padding(8.dp)
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
-                            )
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
                             .clickable { onBackClick() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -85,14 +94,13 @@ fun ProductDetailScreen(
                     }
                 },
                 actions = {
+                    // Nút chỉnh sửa (circle button)
                     Box(
                         modifier = Modifier
                             .padding(8.dp)
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
-                            )
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
                             .clickable { onEditClick() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -117,6 +125,7 @@ fun ProductDetailScreen(
                 .verticalScroll(scrollState)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            // ========== PHẦN ẢNH SẢN PHẨM (HorizontalPager) ==========
             val pagerState = rememberPagerState(pageCount = {
                 if (product.imageUrls.isEmpty()) 1 else product.imageUrls.size
             })
@@ -129,12 +138,14 @@ fun ProductDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (product.imageUrls.isNotEmpty()) {
+                    // Hiển thị ảnh từ URLs (swipe ngang)
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         val url = product.imageUrls[page]
                         if (url.startsWith("preset_")) {
+                            // Ảnh preset → hiển thị icon danh mục
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
@@ -147,6 +158,7 @@ fun ProductDetailScreen(
                                 )
                             }
                         } else {
+                            // Ảnh thật từ file
                             Image(
                                 painter = rememberAsyncImagePainter(File(url)),
                                 contentDescription = product.name,
@@ -155,6 +167,7 @@ fun ProductDetailScreen(
                             )
                         }
                     }
+                    // Dots indicator (chỉ hiển thị nếu có nhiều hơn 1 ảnh)
                     if (product.imageUrls.size > 1) {
                         Row(
                             modifier = Modifier
@@ -180,6 +193,7 @@ fun ProductDetailScreen(
                         }
                     }
                 } else {
+                    // Không có ảnh → hiển thị icon danh mục lớn
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -201,10 +215,7 @@ fun ProductDetailScreen(
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = stringResource(
-                                R.string.product_code_label,
-                                product.code
-                            ),
+                            text = stringResource(R.string.product_code_label, product.code),
                             style = MaterialTheme.typography.titleSmall,
                             color = meta.color
                         )
@@ -214,6 +225,7 @@ fun ProductDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ========== PHẦN ĐIỀU CHỈNH TỒN KHO ==========
             WarehouseCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -223,11 +235,10 @@ fun ProductDetailScreen(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SectionHeader(
-                        title = stringResource(R.string.section_stock_adjustment)
-                    )
+                    SectionHeader(title = stringResource(R.string.section_stock_adjustment))
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Hàng nút điều chỉnh: -10, -1, số lượng hiện tại, +1, +10
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -247,12 +258,11 @@ fun ProductDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Remove,
-                                contentDescription = stringResource(
-                                    R.string.content_desc_decrease_one
-                                )
+                                contentDescription = stringResource(R.string.content_desc_decrease_one)
                             )
                         }
 
+                        // Hiển thị số lượng hiện tại
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.width(100.dp)
@@ -261,7 +271,7 @@ fun ProductDetailScreen(
                                 text = product.quantity.toString(),
                                 style = MaterialTheme.typography.displayLarge,
                                 color = if (product.isLowStock())
-                                    StockDanger
+                                    StockDanger  // Đỏ nếu tồn kho thấp
                                 else
                                     MaterialTheme.colorScheme.primary
                             )
@@ -277,15 +287,11 @@ fun ProductDetailScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                )
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Add,
-                                contentDescription = stringResource(
-                                    R.string.content_desc_increase_one
-                                ),
+                                contentDescription = stringResource(R.string.content_desc_increase_one),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -296,23 +302,19 @@ fun ProductDetailScreen(
                         )
                     }
 
+                    // Hiển thị cảnh báo nếu tồn kho thấp (≤ 10)
                     if (product.isLowStock()) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(
                             modifier = Modifier
                                 .clip(MaterialTheme.shapes.small)
                                 .background(StockDanger.copy(alpha = 0.08f))
-                                .padding(
-                                    horizontal = 12.dp,
-                                    vertical = 6.dp
-                                ),
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Warning,
-                                contentDescription = stringResource(
-                                    R.string.content_desc_warning
-                                ),
+                                contentDescription = stringResource(R.string.content_desc_warning),
                                 tint = StockDanger,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -329,15 +331,14 @@ fun ProductDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ========== PHẦN THÔNG TIN CHI TIẾT ==========
             WarehouseCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    SectionHeader(
-                        title = stringResource(R.string.section_product_details)
-                    )
+                    SectionHeader(title = stringResource(R.string.section_product_details))
                     Spacer(modifier = Modifier.height(12.dp))
                     DetailSpecRow(
                         icon = Icons.Rounded.AttachMoney,
@@ -360,9 +361,7 @@ fun ProductDetailScreen(
                     DetailSpecRow(
                         icon = Icons.Rounded.Equalizer,
                         label = stringResource(R.string.detail_total_value),
-                        value = formatCurrency(
-                            product.quantity * product.price
-                        ),
+                        value = formatCurrency(product.quantity * product.price),
                         valueColor = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -370,30 +369,28 @@ fun ProductDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ========== PHẦN MÔ TẢ ==========
             WarehouseCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    SectionHeader(
-                        title = stringResource(R.string.section_product_description)
-                    )
+                    SectionHeader(title = stringResource(R.string.section_product_description))
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = product.description.ifEmpty {
                             stringResource(R.string.no_description)
                         },
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.8f
-                        )
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // ========== NÚT XÓA SẢN PHẨM ==========
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -410,6 +407,7 @@ fun ProductDetailScreen(
             }
         }
 
+        // ========== DIALOG XÁC NHẬN XÓA ==========
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
@@ -429,7 +427,7 @@ fun ProductDetailScreen(
                     Button(
                         onClick = {
                             showDeleteDialog = false
-                            onDeleteClick()
+                            onDeleteClick()  // Gọi callback xóa
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error

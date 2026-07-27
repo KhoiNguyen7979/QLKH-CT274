@@ -9,6 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.R
 
+/**
+ * Header (TopAppBar) tùy chỉnh cho ứng dụng.
+ * Hiển thị tiêu đề + nút menu (⋮) ở góc phải.
+ * Màu nền primary, text white.
+ * Có statusBarsPadding để không bị chồng lên status bar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WarehouseHeader(
@@ -25,13 +31,12 @@ fun WarehouseHeader(
             )
         },
         actions = {
+            // Nút menu (⋮) - có thể ẩn/hiện
             if (showActions) {
                 IconButton(onClick = onActionClick) {
                     Icon(
                         imageVector = Icons.Rounded.MoreVert,
-                        contentDescription = stringResource(
-                            R.string.content_desc_more_options
-                        ),
+                        contentDescription = stringResource(R.string.content_desc_more_options),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -40,6 +45,6 @@ fun WarehouseHeader(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),
-        modifier = Modifier.statusBarsPadding()
+        modifier = Modifier.statusBarsPadding()  // Tránh chồng lên status bar
     )
 }

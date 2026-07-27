@@ -12,19 +12,30 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/**
+ * Component hiển thị trạng thái trống.
+ * Hiển thị khi không có dữ liệu để hiển thị.
+ * Cấu trúc:
+ * - Icon lớn trong circle (mờ)
+ * - Title (bold)
+ * - Subtitle (optional)
+ * - Action button (optional)
+ * Dùng trong: DashboardScreen, ItemsListScreen, SearchScreen, NotificationsScreen.
+ */
 @Composable
 fun EmptyState(
     icon: ImageVector,
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    action: @Composable (() -> Unit)? = null
+    action: @Composable (() -> Unit)? = null  // Optional action button
 ) {
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(32.dp)
         ) {
+            // Icon lớn trong circle mờ
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -50,6 +61,7 @@ fun EmptyState(
                     textAlign = TextAlign.Center
                 )
             }
+            // Optional action button (ví dụ: nút "Xóa bộ lọc")
             if (action != null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 action()

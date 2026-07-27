@@ -9,6 +9,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
+/**
+ * Nút menu tùy chỉnh.
+ * - Full-width, chiều cao 56dp
+ * - Icon bên trái + text bên phải
+ * - Dùng trong WarehouseMenuSheet và nút xóa sản phẩm
+ * - Có thể tùy chỉnh màu sắc (containerColor, contentColor)
+ */
 @Composable
 fun WarehouseMenuButton(
     text: String,

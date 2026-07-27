@@ -37,6 +37,16 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.random.Random
 
+/**
+ * Màn hình Thêm / Chỉnh sửa Sản phẩm.
+ * - Nếu product = null → chế độ THÊM MỚI
+ * - Nếu product ≠ null → chế độ CHỈNH SỬA (điền sẵn thông tin cũ)
+ * Bao gồm:
+ * 1. Picker ảnh (4 slots, HorizontalPager)
+ * 2. Form nhập thông tin (tên, mã, danh mục, SL, giá, mô tả)
+ * 3. Tổng giá trị realtime
+ * 4. Nút submit (thêm/lưu)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditProductScreen(
@@ -48,6 +58,7 @@ fun AddEditProductScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    // Các trường dữ liệu form (nếu edit mode → điền sẵn từ product)
     var name by remember { mutableStateOf(product?.name ?: "") }
     var code by remember { mutableStateOf(product?.code ?: "") }
     var quantityStr by remember { mutableStateOf(product?.quantity?.toString() ?: "") }
@@ -55,6 +66,7 @@ fun AddEditProductScreen(
     var category by remember { mutableStateOf(product?.category ?: "Chung") }
     var description by remember { mutableStateOf(product?.description ?: "") }
 
+    // Danh sách 4 ảnh (padding empty string nếu thiếu)
     var imageUrls by remember {
         mutableStateOf(
             product?.imageUrls?.let { it.take(4).plus(List(4 - it.size.coerceAtMost(4)) { "" }) }
@@ -62,14 +74,17 @@ fun AddEditProductScreen(
         )
     }
 
-    var selectedIndex by remember { mutableIntStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(0) }  // Slot ảnh đang chọn
 
+    // Launcher để chọn ảnh từ gallery
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
+            // Đọc ảnh từ URI và lưu vào filesDir của app
             val inputStream = context.contentResolver.openInputStream(it)
             val file = File(context.filesDir, "prod_${System.currentTimeMillis()}_$selectedIndex.jpg")
             val outputStream = FileOutputStream(file)
             inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
+            // Cập nhật danh sách ảnh
             val newList = imageUrls.toMutableList()
             newList[selectedIndex] = file.absolutePath
             imageUrls = newList
@@ -82,10 +97,12 @@ fun AddEditProductScreen(
     var showErrorAlert by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    // Tính tổng giá trị realtime
     val qty = quantityStr.toIntOrNull() ?: 0
     val price = priceStr.toDoubleOrNull() ?: 0.0
     val totalValue = qty * price
 
+    /** Tạo mã SKU ngẫu nhiên (2 chữ cái + 6 số) */
     fun generateRandomSKU() {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         val numbers = "0123456789"
@@ -94,6 +111,7 @@ fun AddEditProductScreen(
         code = "$prefix$suffix"
     }
 
+    /** Validate và submit form */
     fun validateAndSubmit() {
         if (name.trim().isEmpty()) {
             errorMessage = context.getString(R.string.error_empty_name)
@@ -109,7 +127,7 @@ fun AddEditProductScreen(
                 priceStr.toDoubleOrNull() ?: 0.0,
                 category,
                 description.trim(),
-                imageUrls.filter { it.isNotEmpty() }
+                imageUrls.filter { it.isNotEmpty() }  // Lọc bỏ slot trống
             )
         }
     }
@@ -148,6 +166,7 @@ fun AddEditProductScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
+            // ========== PHẦN CHỌN ẢNH (4 slots) ==========
             SectionHeader(
                 title = stringResource(R.string.section_product_images),
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -158,6 +177,7 @@ fun AddEditProductScreen(
                     val pagerState = rememberPagerState(pageCount = { 4 })
                     val scope = rememberCoroutineScope()
 
+                    // HorizontalPager hiển thị 4 slot ảnh
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
@@ -170,6 +190,7 @@ fun AddEditProductScreen(
                         val url = imageUrls[page]
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             if (url.isNotEmpty() && !url.startsWith("preset_")) {
+                                // Đã có ảnh → hiển thị
                                 Image(
                                     painter = rememberAsyncImagePainter(File(url)),
                                     contentDescription = null,
@@ -177,6 +198,7 @@ fun AddEditProductScreen(
                                     contentScale = ContentScale.Crop
                                 )
                             } else {
+                                // Chưa có ảnh → hiển thị placeholder
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center,
@@ -199,6 +221,7 @@ fun AddEditProductScreen(
                         }
                     }
 
+                    // Dots indicator
                     Row(
                         Modifier.height(20.dp).fillMaxWidth().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.Center
@@ -213,6 +236,7 @@ fun AddEditProductScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Thumbnails nhỏ để chọn slot
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         for (index in 0 until 4) {
                             val url = imageUrls[index]
@@ -229,7 +253,7 @@ fun AddEditProductScreen(
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                     .clickable {
                                         selectedIndex = index
-                                        launcher.launch("image/*")
+                                        launcher.launch("image/*")  // Mở gallery
                                         scope.launch { pagerState.animateScrollToPage(index) }
                                     },
                                 contentAlignment = Alignment.Center
@@ -255,11 +279,13 @@ fun AddEditProductScreen(
                 }
             }
 
+            // ========== FORM NHẬP THÔNG TIN ==========
             SectionHeader(
                 title = stringResource(R.string.section_product_info),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            // Tên sản phẩm
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -270,6 +296,7 @@ fun AddEditProductScreen(
                 singleLine = true
             )
 
+            // Mã sản phẩm (có nút random SKU)
             OutlinedTextField(
                 value = code,
                 onValueChange = { code = it },
@@ -289,6 +316,7 @@ fun AddEditProductScreen(
                 singleLine = true
             )
 
+            // Dropdown chọn danh mục
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                 OutlinedTextField(
                     value = category,
@@ -320,6 +348,7 @@ fun AddEditProductScreen(
                 }
             }
 
+            // Số lượng và giá (2 ô cạnh nhau)
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -344,6 +373,7 @@ fun AddEditProductScreen(
                 )
             }
 
+            // Mô tả
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -354,6 +384,7 @@ fun AddEditProductScreen(
                 maxLines = 4
             )
 
+            // Card hiển thị tổng giá trị realtime
             Card(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
                 colors = CardDefaults.cardColors(
@@ -388,6 +419,7 @@ fun AddEditProductScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Nút submit (Thêm mới / Lưu chỉnh sửa)
             Button(
                 onClick = { validateAndSubmit() },
                 modifier = Modifier
@@ -414,6 +446,7 @@ fun AddEditProductScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        // ========== DIALOG LỖI VALIDATE ==========
         if (showErrorAlert) {
             AlertDialog(
                 onDismissRequest = { showErrorAlert = false },

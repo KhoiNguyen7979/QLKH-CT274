@@ -13,6 +13,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.R
 
+/**
+ * Thanh tìm kiếm tùy chỉnh.
+ * - Bọc trong WarehouseCard
+ * - Leading icon: search
+ * - Trailing icon: clear (chỉ hiển thị khi có query)
+ * - Transparent background (không viền)
+ * Dùng trong ItemsListScreen và SearchScreen.
+ */
 @Composable
 fun WarehouseSearchBar(
     query: String,
@@ -34,6 +42,7 @@ fun WarehouseSearchBar(
                 )
             },
             trailingIcon = {
+                // Chỉ hiển thị nút clear khi có nội dung
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { onQueryChange("") }) {
                         Icon(

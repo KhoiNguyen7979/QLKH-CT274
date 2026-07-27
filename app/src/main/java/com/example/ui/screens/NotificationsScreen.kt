@@ -17,6 +17,17 @@ import com.example.data.WarehouseNotification
 import com.example.ui.components.*
 import com.example.ui.theme.*
 
+/**
+ * Màn hình Thông báo (Tab 2).
+ * Hiển thị danh sách thông báo分成 2 section:
+ * - "Mới" (trong 24h)
+ * - "Trước đó" (cũ hơn 24h)
+ * Hỗ trợ:
+ * - Xem chi tiết thông báo (click)
+ * - Xóa thông báo (swipe)
+ * - Xóa tất cả
+ * - Đánh dấu tất cả đã đọc
+ */
 @Composable
 fun NotificationsScreen(
     notifications: List<WarehouseNotification>,
@@ -28,6 +39,7 @@ fun NotificationsScreen(
     val now = System.currentTimeMillis()
     val oneDay = 24 * 60 * 60 * 1000L
     val unreadCount = notifications.count { !it.isRead }
+    // Phân loại thông báo: mới (<24h) và cũ (≥24h)
     val newNotifications = notifications.filter { now - it.timestamp < oneDay }
     val earlierNotifications = notifications.filter { now - it.timestamp >= oneDay }
 
@@ -35,6 +47,7 @@ fun NotificationsScreen(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // ========== HEADER ==========
         Column(
             modifier = Modifier.fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -44,6 +57,7 @@ fun NotificationsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Tiêu đề + badge số chưa đọc
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.notification_screen_title),
@@ -61,6 +75,7 @@ fun NotificationsScreen(
                         }
                     }
                 }
+                // Nút "Xóa tất cả" (nếu có thông báo)
                 if (notifications.isNotEmpty()) {
                     TextButton(
                         onClick = onClearAllClick,
@@ -78,6 +93,7 @@ fun NotificationsScreen(
                 }
             }
 
+            // Nút "Đánh dấu tất cả đã đọc" (n nếu có unread)
             if (unreadCount > 0) {
                 TextButton(
                     onClick = onMarkAllAsReadClick,
@@ -94,6 +110,7 @@ fun NotificationsScreen(
                 }
             }
 
+            // Tổng quan: "X chưa đọc / Y tổng cộng" hoặc "Tất cả đã đọc"
             if (notifications.isNotEmpty()) {
                 Text(
                     text = if (unreadCount > 0)
@@ -110,7 +127,9 @@ fun NotificationsScreen(
             }
         }
 
+        // ========== DANH SÁCH THÔNG BÁO ==========
         if (notifications.isEmpty()) {
+            // Trống
             EmptyState(
                 icon = Icons.Rounded.NotificationsOff,
                 title = stringResource(R.string.notifications_empty_title),
@@ -123,6 +142,7 @@ fun NotificationsScreen(
                     horizontal = 16.dp, vertical = 4.dp
                 )
             ) {
+                // Section "Mới" (<24h)
                 if (newNotifications.isNotEmpty()) {
                     item {
                         SectionHeader(
@@ -131,6 +151,7 @@ fun NotificationsScreen(
                         )
                     }
                     items(newNotifications, key = { it.id }) { notification ->
+                        // SwipeToDismiss để xóa bằng cách vuốt
                         SwipeToDismissNotificationItem(
                             notification = notification,
                             onDismiss = {
@@ -144,6 +165,7 @@ fun NotificationsScreen(
                     }
                     item { Spacer(Modifier.height(16.dp)) }
                 }
+                // Section "Trước đó" (≥24h)
                 if (earlierNotifications.isNotEmpty()) {
                     item {
                         SectionHeader(
@@ -167,7 +189,7 @@ fun NotificationsScreen(
                         }
                     }
                 }
-                item { Spacer(Modifier.height(80.dp)) }
+                item { Spacer(Modifier.height(80.dp)) }  // Padding cuối
             }
         }
     }

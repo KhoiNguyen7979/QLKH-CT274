@@ -23,6 +23,14 @@ import com.example.ui.utils.formatCurrency
 import com.example.ui.utils.isLowStock
 import java.io.File
 
+/**
+ * Component hiển thị một sản phẩm trong danh sách.
+ * Cấu trúc Row:
+ * - Thumbnail (ảnh preset hoặc Coil image)
+ * - Thông tin (tên, mã, badge danh mục, badge low-stock)
+ * - Cột phải (số lượng, giá, tổng GT)
+ * Click → navigate đến chi tiết sản phẩm.
+ */
 @Composable
 fun ProductListItem(
     product: Product,
@@ -44,6 +52,7 @@ fun ProductListItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // ========== THUMBNAIL ==========
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -54,6 +63,7 @@ fun ProductListItem(
                 if (product.imageUrls.isNotEmpty() &&
                     !product.imageUrls.first().startsWith("preset_")
                 ) {
+                    // Ảnh thật từ file
                     Image(
                         painter = rememberAsyncImagePainter(
                             File(product.imageUrls.first())
@@ -63,6 +73,7 @@ fun ProductListItem(
                         contentScale = ContentScale.Crop
                     )
                 } else {
+                    // Ảnh preset → icon danh mục
                     Icon(
                         imageVector = meta.icon,
                         contentDescription = product.category,
@@ -74,6 +85,7 @@ fun ProductListItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            // ========== THÔNG TIN SẢN PHẨM ==========
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = product.name,
@@ -89,6 +101,7 @@ fun ProductListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                // Badge danh mục + badge low-stock
                 Row(
                     modifier = Modifier.padding(top = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -125,6 +138,7 @@ fun ProductListItem(
                 }
             }
 
+            // ========== CỘT PHẢI: SL, GIÁ, TỔNG GT ==========
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
@@ -136,7 +150,7 @@ fun ProductListItem(
                     ),
                     style = MaterialTheme.typography.titleSmall,
                     color = if (product.isLowStock()) {
-                        StockDanger
+                        StockDanger  // Đỏ nếu tồn kho thấp
                     } else {
                         MaterialTheme.colorScheme.onSurface
                     }

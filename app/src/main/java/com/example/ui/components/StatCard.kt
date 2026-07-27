@@ -13,8 +13,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/** Enum xác định kiểu hiển thị StatCard */
 enum class StatVariant { Compact, Rich }
 
+/**
+ * Card thống kê tùy chỉnh.
+ * - Compact: chỉ text label + value (nhỏ gọn)
+ * - Rich: icon circle + value + label trong WarehouseCard (đầy đủ hơn)
+ * Dùng trong DashboardScreen và ItemsListScreen.
+ */
 @Composable
 fun StatCard(
     label: String,
@@ -26,6 +33,7 @@ fun StatCard(
 ) {
     when (variant) {
         StatVariant.Compact -> {
+            // Kiểu compact: chỉ label + value
             Column(
                 modifier = modifier,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -43,6 +51,7 @@ fun StatCard(
             }
         }
         StatVariant.Rich -> {
+            // Kiểu rich: icon circle + value + label
             WarehouseCard(modifier = modifier) {
                 Column(
                     modifier = Modifier
@@ -51,6 +60,7 @@ fun StatCard(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // Circle icon hoặc value (nếu không có icon)
                     Box(
                         modifier = Modifier
                             .size(48.dp)

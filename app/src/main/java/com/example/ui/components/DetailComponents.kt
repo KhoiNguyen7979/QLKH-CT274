@@ -10,6 +10,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/**
+ * Nút điều chỉnh tồn kho (±1, ±10).
+ * - Màu: primaryContainer background
+ * - Dùng trong ProductDetailScreen
+ */
 @Composable
 fun StockAdjButton(label: String, onClick: () -> Unit) {
     Button(
@@ -31,6 +36,11 @@ fun StockAdjButton(label: String, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Row hiển thị thông tin chi tiết (icon + label + value).
+ * Dùng trong ProductDetailScreen và NotificationDetailScreen.
+ * Ví dụ: "💰 Đơn giá: 250.000₫"
+ */
 @Composable
 fun DetailSpecRow(
     icon: ImageVector,
@@ -45,6 +55,7 @@ fun DetailSpecRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        // Cột trái: icon + label
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = icon,
@@ -59,6 +70,7 @@ fun DetailSpecRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        // Cột phải: value
         Text(
             text = value,
             style = MaterialTheme.typography.titleSmall,
